@@ -54,9 +54,9 @@ async fn main() -> std::io::Result<()> {
             }))
             .wrap(cors)
             .service(
-                web::scope("/api")
+                web::scope("/v0")
                     .service(api::lookup_by_public_key)
-                    .service(api::validators)
+                    .service(api::staking)
                     .service(api::ft)
                     .service(api::nft),
             )

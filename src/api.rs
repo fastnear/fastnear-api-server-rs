@@ -59,8 +59,8 @@ pub async fn lookup_by_public_key(
     })))
 }
 
-#[get("/validators/{account_id}")]
-pub async fn validators(
+#[get("/account/{account_id}/staking")]
+pub async fn staking(
     request: HttpRequest,
     app_state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
@@ -79,11 +79,11 @@ pub async fn validators(
 
     Ok(web::Json(json!({
         "account_id": account_id,
-        "validators": query_result,
+        "pools": query_result,
     })))
 }
 
-#[get("/ft/{account_id}")]
+#[get("/account/{account_id}/ft")]
 pub async fn ft(
     request: HttpRequest,
     app_state: web::Data<AppState>,
@@ -103,11 +103,11 @@ pub async fn ft(
 
     Ok(web::Json(json!({
         "account_id": account_id,
-        "fts": query_result,
+        "contract_ids": query_result,
     })))
 }
 
-#[get("/nft/{account_id}")]
+#[get("/account/{account_id}/nft")]
 pub async fn nft(
     request: HttpRequest,
     app_state: web::Data<AppState>,
@@ -127,6 +127,6 @@ pub async fn nft(
 
     Ok(web::Json(json!({
         "account_id": account_id,
-        "nfts": query_result,
+        "contract_ids": query_result,
     })))
 }

@@ -1,14 +1,17 @@
-use crate::database::ActionRow;
 use crate::*;
 use actix_web::ResponseError;
+use near_account_id::AccountId;
+use near_crypto::PublicKey;
 use serde_json::json;
 use std::fmt;
+use std::str::FromStr;
 
 const TARGET_API: &str = "api";
 
 #[derive(Debug)]
 enum ServiceError {
     DatabaseError(database::DatabaseError),
+    ArgumentError,
 }
 
 impl From<database::DatabaseError> for ServiceError {
@@ -21,6 +24,7 @@ impl fmt::Display for ServiceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ServiceError::DatabaseError(ref message) => write!(f, "Database Error: {:?}", message),
+            ServiceError::ArgumentError => write!(f, "Invalid argument"),
         }
     }
 }
@@ -31,29 +35,98 @@ impl ResponseError for ServiceError {
             ServiceError::DatabaseError(_) => {
                 HttpResponse::InternalServerError().json("Internal server error")
             }
+            ServiceError::ArgumentError => HttpResponse::BadRequest().json("Invalid argument"),
         }
     }
 }
 
-#[get("/lookup/public_key/{public_key}")]
+#[get("/public_key/{public_key}")]
 pub async fn lookup_by_public_key(
     request: HttpRequest,
     app_state: web::Data<AppState>,
 ) -> Result<impl Responder, ServiceError> {
-    let public_key = request
-        .match_info()
-        .get("public_key")
-        .unwrap()
-        .parse::<String>()
-        .unwrap();
+    let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
+        .map_err(|_| ServiceError::ArgumentError)?;
 
     tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
-    let query_result: Vec<ActionRow> =
-        database::query_account_by_public_key(&app_state.db, &public_key).await?;
+    let query_result: Vec<String> =
+        database::query_account_by_public_key(&app_state.db, &public_key.to_string()).await?;
 
     Ok(web::Json(json!({
         "public_key": public_key,
-        "account_ids": query_result.into_iter().map(|row| row.account_id).collect::<Vec<_>>(),
+        "account_ids": query_result,
+    })))
+}
+
+#[get("/validators/{account_id}")]
+pub async fn validators(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let account_id =
+        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+            .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
+
+    let query_result: Vec<String> = database::query_with_prefix(
+        &mut app_state.redis_db.lock().expect("Lock poisoning"),
+        "st",
+        &account_id.to_string(),
+    )
+    .await?;
+
+    Ok(web::Json(json!({
+        "account_id": account_id,
+        "validators": query_result,
+    })))
+}
+
+#[get("/ft/{account_id}")]
+pub async fn ft(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let account_id =
+        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+            .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+
+    let query_result: Vec<String> = database::query_with_prefix(
+        &mut app_state.redis_db.lock().expect("Lock poisoning"),
+        "ft",
+        &account_id.to_string(),
+    )
+    .await?;
+
+    Ok(web::Json(json!({
+        "account_id": account_id,
+        "fts": query_result,
+    })))
+}
+
+#[get("/nft/{account_id}")]
+pub async fn nft(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let account_id =
+        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+            .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
+
+    let query_result: Vec<String> = database::query_with_prefix(
+        &mut app_state.redis_db.lock().expect("Lock poisoning"),
+        "nf",
+        &account_id.to_string(),
+    )
+    .await?;
+
+    Ok(web::Json(json!({
+        "account_id": account_id,
+        "nfts": query_result,
     })))
 }

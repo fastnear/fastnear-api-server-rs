@@ -5,16 +5,25 @@ use clickhouse::{Client, Row};
 use serde::Deserialize;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
+const LIMIT: u64 = 10;
+
 const TARGET_DB: &str = "database";
 
 #[derive(Debug)]
 pub enum DatabaseError {
     ClickhouseError(clickhouse::error::Error),
+    RedisError(redis::RedisError),
 }
 
 impl From<clickhouse::error::Error> for DatabaseError {
     fn from(error: clickhouse::error::Error) -> Self {
         DatabaseError::ClickhouseError(error)
+    }
+}
+
+impl From<redis::RedisError> for DatabaseError {
+    fn from(error: redis::RedisError) -> Self {
+        DatabaseError::RedisError(error)
     }
 }
 
@@ -39,76 +48,6 @@ pub enum ActionKind {
     Delegate = 9,
 }
 
-#[derive(Row, Deserialize)]
-pub struct ActionRow {
-    pub block_height: u64,
-    pub block_hash: String,
-    pub block_timestamp: u64,
-    pub receipt_id: String,
-    pub receipt_index: u16,
-    pub action_index: u8,
-    pub signer_id: String,
-    pub signer_public_key: String,
-    pub predecessor_id: String,
-    pub account_id: String,
-    pub status: ReceiptStatus,
-    pub action: ActionKind,
-    pub contract_hash: Option<String>,
-    pub public_key: Option<String>,
-    pub access_key_contract_id: Option<String>,
-    pub deposit: Option<u128>,
-    pub gas_price: u128,
-    pub attached_gas: Option<u64>,
-    pub gas_burnt: u64,
-    pub tokens_burnt: u128,
-    pub method_name: Option<String>,
-    pub args_account_id: Option<String>,
-    pub args_new_account_id: Option<String>,
-    pub args_owner_id: Option<String>,
-    pub args_receiver_id: Option<String>,
-    pub args_sender_id: Option<String>,
-    pub args_token_id: Option<String>,
-    pub args_amount: Option<u128>,
-    pub args_balance: Option<u128>,
-    pub args_nft_contract_id: Option<String>,
-    pub args_nft_token_id: Option<String>,
-    pub args_utm_source: Option<String>,
-    pub args_utm_medium: Option<String>,
-    pub args_utm_campaign: Option<String>,
-    pub args_utm_term: Option<String>,
-    pub args_utm_content: Option<String>,
-    pub return_value_int: Option<u128>,
-}
-
-#[derive(Row, Deserialize)]
-pub struct EventRow {
-    pub block_height: u64,
-    pub block_hash: String,
-    pub block_timestamp: u64,
-    pub receipt_id: String,
-    pub receipt_index: u16,
-    pub log_index: u16,
-    pub signer_id: String,
-    pub signer_public_key: String,
-    pub predecessor_id: String,
-    pub account_id: String,
-    pub status: ReceiptStatus,
-
-    pub version: Option<String>,
-    pub standard: Option<String>,
-    pub event: Option<String>,
-    pub data_account_id: Option<String>,
-    pub data_owner_id: Option<String>,
-    pub data_old_owner_id: Option<String>,
-    pub data_new_owner_id: Option<String>,
-    pub data_liquidation_account_id: Option<String>,
-    pub data_authorized_id: Option<String>,
-    pub data_token_ids: Vec<String>,
-    pub data_token_id: Option<String>,
-    pub data_position: Option<String>,
-    pub data_amount: Option<u128>,
-}
-
 pub(crate) fn establish_connection() -> Client {
     Client::default()
         .with_url(env::var("DATABASE_URL").unwrap())
@@ -120,14 +59,15 @@ pub(crate) fn establish_connection() -> Client {
 pub(crate) async fn query_account_by_public_key(
     client: &Client,
     public_key: &str,
-) -> Result<Vec<ActionRow>, DatabaseError> {
+) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
     let res = client
-        .query("SELECT * FROM actions WHERE public_key = ? and status = ? and action = ? order by block_height desc limit 10")
+        .query("SELECT account_id FROM actions WHERE public_key = ? and status = ? and action = ? and access_key_contract_id IS NULL order by block_height desc limit ?")
         .bind(public_key)
         .bind(ReceiptStatus::Success)
         .bind(ActionKind::AddKey)
-        .fetch_all::<ActionRow>()
+        .bind(LIMIT)
+        .fetch_all::<String>()
         .await;
 
     let duration = start.elapsed().as_millis();
@@ -137,4 +77,29 @@ pub(crate) async fn query_account_by_public_key(
         public_key);
 
     Ok(res?)
+}
+
+pub(crate) async fn query_with_prefix(
+    redis_db: &mut RedisDB,
+    prefix: &str,
+    account_id: &str,
+) -> Result<Vec<String>, DatabaseError> {
+    let start = std::time::Instant::now();
+
+    let res: redis::RedisResult<Vec<(String, String)>> =
+        with_retries!(redis_db, |connection| async {
+            redis::cmd("HGETALL")
+                .arg(format!("{}:{}", prefix, account_id))
+                .query_async(connection)
+                .await
+        });
+
+    let duration = start.elapsed().as_millis();
+
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_with_prefix {}:{}",
+        duration,
+        prefix,
+        account_id);
+
+    Ok(res?.into_iter().map(|(k, _)| k).collect())
 }

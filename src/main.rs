@@ -1,8 +1,11 @@
 mod api;
 mod database;
+mod redis_db;
 
 use dotenv::dotenv;
+use std::sync::{Arc, Mutex};
 
+use crate::redis_db::RedisDB;
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::{get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -11,6 +14,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Clone)]
 pub struct AppState {
     pub db: clickhouse::Client,
+    pub redis_db: Arc<Mutex<RedisDB>>,
 }
 
 async fn greet() -> impl Responder {
@@ -27,6 +31,7 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     let db = database::establish_connection();
+    let redis_db = Arc::new(Mutex::new(RedisDB::new(None).await));
 
     HttpServer::new(move || {
         // Configure CORS middleware
@@ -42,9 +47,18 @@ async fn main() -> std::io::Result<()> {
             .supports_credentials();
 
         App::new()
-            .app_data(web::Data::new(AppState { db: db.clone() }))
+            .app_data(web::Data::new(AppState {
+                db: db.clone(),
+                redis_db: redis_db.clone(),
+            }))
             .wrap(cors)
-            .service(web::scope("/api").service(api::lookup_by_public_key))
+            .service(
+                web::scope("/api")
+                    .service(api::lookup_by_public_key)
+                    .service(api::validators)
+                    .service(api::ft)
+                    .service(api::nft),
+            )
             .route("/", web::get().to(greet))
     })
     .bind("127.0.0.1:8080")?

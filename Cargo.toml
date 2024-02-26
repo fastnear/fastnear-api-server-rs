@@ -17,3 +17,9 @@ clickhouse = "0.11.6"
 dotenv = "0.15.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+redis = { version = "0.24.0", features = ["tokio-comp", "tokio-native-tls-comp", "streams"] }
+itertools = "0.12.0"
+tokio = { version = "1.1", features = ["time", "sync", "rt-multi-thread"] }
+
+near-account-id = "0.1.0"
+near-crypto = "0.20.0"

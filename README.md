@@ -5,12 +5,12 @@ There are 4 APIs provided to replace deprecated `api.kitwallet.app` APIs
 #### Public Key to Account ID mapping.
 
 ```bash
-curl https://api.fastnear.com/v0/public_key/ed25519:FgnniGcW8fjzMQ9iGgE13vXLyqjqZ7XNKpCA6paN7Mt2
+curl https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
 ```
 
 Result:
 ```json
-{"account_ids":["ganagoody.tg"],"public_key":"ed25519:FgnniGcW8fjzMQ9iGgE13vXLyqjqZ7XNKpCA6paN7Mt2"}
+{"account_ids":["root.near"],"public_key":"ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"}
 ```
 
 #### Account ID to delegated staking pools (validators).

@@ -4,6 +4,12 @@ There are 4 APIs provided to replace deprecated `api.kitwallet.app` APIs
 
 #### Public Key to Account ID mapping.
 
+Returns the list of account IDs that are associated with the full public key.
+```
+GET /v0/public_key/{public_key}
+```
+
+Example: https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
 ```bash
 curl https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
 ```
@@ -15,6 +21,12 @@ Result:
 
 #### Account ID to delegated staking pools (validators).
 
+Returns the list of staking pools that the account has delegated to in the past.
+```
+GET /v0/account/{account_id}/staking
+```
+
+Example: https://api.fastnear.com/v0/account/root.near/staking
 ```bash
 curl https://api.fastnear.com/v0/account/root.near/staking
 ```
@@ -26,6 +38,12 @@ Result:
 
 #### Account ID to fungible tokens (FT contracts).
 
+Returns the list of fungible tokens (FT) contracts that the account has interacted with or received.
+```
+GET /v0/account/{account_id}/ft
+```
+
+Example: https://api.fastnear.com/v0/account/root.near/ft
 ```bash
 curl https://api.fastnear.com/v0/account/root.near/ft
 ```
@@ -37,6 +55,12 @@ Result:
 
 ### Account ID to non-fungible tokens (NFT contracts).
 
+Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received.
+```
+GET /v0/account/{account_id}/nft
+```
+
+Example: https://api.fastnear.com/v0/account/root.near/nft
 ```bash
 curl https://api.fastnear.com/v0/account/root.near/nft
 ```

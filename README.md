@@ -1,8 +1,19 @@
 # FASTNEAR API
 
-There are 4 APIs provided to replace deprecated `api.kitwallet.app` APIs
+The low-latency API for wallets and explorers.
+
+## Overview
+
+There are 4 APIs provided to replace deprecated `api.kitwallet.app` endpoint:
+
+1. Public Key to Account ID mapping.
+2. Account ID to delegated staking pools (validators).
+3. Account ID to fungible tokens (FT contracts).
+4. Account ID to non-fungible tokens (NFT contracts).
 
 #### Public Key to Account ID mapping.
+
+*Expected latency ~`270ms`*
 
 Returns the list of account IDs that are associated with the full public key.
 ```
@@ -21,6 +32,8 @@ Result:
 
 #### Account ID to delegated staking pools (validators).
 
+*Expected latency ~`26ms`*
+
 Returns the list of staking pools that the account has delegated to in the past.
 ```
 GET /v0/account/{account_id}/staking
@@ -38,6 +51,8 @@ Result:
 
 #### Account ID to fungible tokens (FT contracts).
 
+*Expected latency ~`26ms`*
+
 Returns the list of fungible tokens (FT) contracts that the account has interacted with or received.
 ```
 GET /v0/account/{account_id}/ft
@@ -54,6 +69,8 @@ Result:
 ```
 
 ### Account ID to non-fungible tokens (NFT contracts).
+
+*Expected latency ~`26ms`*
 
 Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received.
 ```

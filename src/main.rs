@@ -3,6 +3,7 @@ mod database;
 mod redis_db;
 
 use dotenv::dotenv;
+use std::env;
 use std::sync::{Arc, Mutex};
 
 use crate::redis_db::RedisDB;
@@ -61,7 +62,7 @@ async fn main() -> std::io::Result<()> {
             )
             .route("/", web::get().to(greet))
     })
-    .bind("127.0.0.1:8080")?
+    .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?
     .run()
     .await
 }

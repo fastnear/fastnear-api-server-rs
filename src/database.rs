@@ -59,10 +59,11 @@ pub(crate) fn establish_connection() -> Client {
 pub(crate) async fn query_account_by_public_key(
     client: &Client,
     public_key: &str,
+    all_public_keys: bool,
 ) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
     let res = client
-        .query("SELECT account_id FROM actions WHERE public_key = ? and status = ? and action = ? and access_key_contract_id IS NULL order by block_height desc limit ?")
+        .query(&format!("SELECT account_id FROM actions WHERE public_key = ? and status = ? and action = ? {}order by block_height desc limit ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
         .bind(public_key)
         .bind(ReceiptStatus::Success)
         .bind(ActionKind::AddKey)
@@ -72,8 +73,9 @@ pub(crate) async fn query_account_by_public_key(
 
     let duration = start.elapsed().as_millis();
 
-    tracing::debug!(target: TARGET_DB, "Query {}ms: query_account_by_public_key {}",
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_account_by_public_key (all {}) {}",
         duration,
+        all_public_keys,
         public_key);
 
     Ok(res?)

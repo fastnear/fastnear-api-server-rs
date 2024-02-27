@@ -56,6 +56,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/v0")
                     .service(api::lookup_by_public_key)
+                    .service(api::lookup_by_public_key_all)
                     .service(api::staking)
                     .service(api::ft)
                     .service(api::nft),

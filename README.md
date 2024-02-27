@@ -7,15 +7,17 @@ The low-latency API for wallets and explorers.
 There are 4 APIs provided to replace deprecated `api.kitwallet.app` endpoint:
 
 1. Public Key to Account ID mapping.
+   2. Full Access Public Key to Account ID mapping.
+   3. Any Public Key to Account ID mapping.
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
 
-#### Public Key to Account ID mapping.
+#### Full Access Public Key to Account ID mapping.
 
 *Expected latency ~`270ms`*
 
-Returns the list of account IDs that are associated with the full public key.
+Returns the list of account IDs that are associated with the full-access public key.
 ```
 GET /v0/public_key/{public_key}
 ```
@@ -29,6 +31,25 @@ Result:
 ```json
 {"account_ids":["root.near"],"public_key":"ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"}
 ```
+
+#### Any Public Key to Account ID mapping.
+*Expected latency ~`270ms`*
+
+Returns the list of account IDs that are associated with this public key, including limited access keys.
+```
+GET /v0/public_key/{public_key}/all
+```
+
+Example: https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+```bash
+curl https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+```
+
+Result:
+```json
+{"account_ids":["root.near"],"public_key":"ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"}⏎
+```
+
 
 #### Account ID to delegated staking pools (validators).
 

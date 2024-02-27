@@ -51,7 +51,27 @@ pub async fn lookup_by_public_key(
     tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
     let query_result: Vec<String> =
-        database::query_account_by_public_key(&app_state.db, &public_key.to_string()).await?;
+        database::query_account_by_public_key(&app_state.db, &public_key.to_string(), false)
+            .await?;
+
+    Ok(web::Json(json!({
+        "public_key": public_key,
+        "account_ids": query_result,
+    })))
+}
+
+#[get("/public_key/{public_key}/all")]
+pub async fn lookup_by_public_key_all(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
+        .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
+
+    let query_result: Vec<String> =
+        database::query_account_by_public_key(&app_state.db, &public_key.to_string(), true).await?;
 
     Ok(web::Json(json!({
         "public_key": public_key,

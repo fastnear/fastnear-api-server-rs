@@ -9,7 +9,9 @@ use std::sync::{Arc, Mutex};
 use crate::redis_db::RedisDB;
 use actix_cors::Cors;
 use actix_web::http::header;
-use actix_web::{get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, middleware, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
@@ -28,6 +30,7 @@ async fn main() -> std::io::Result<()> {
 
     tracing_subscriber::fmt::Subscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
+        // .with_env_filter(EnvFilter::new("debug"))
         .with_writer(std::io::stderr)
         .init();
 
@@ -53,6 +56,8 @@ async fn main() -> std::io::Result<()> {
                 redis_db: redis_db.clone(),
             }))
             .wrap(cors)
+            .wrap(middleware::Logger::default())
+            .wrap(tracing_actix_web::TracingLogger::default())
             .service(
                 web::scope("/v0")
                     .service(api::lookup_by_public_key)

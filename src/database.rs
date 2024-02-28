@@ -82,19 +82,16 @@ pub(crate) async fn query_account_by_public_key(
 }
 
 pub(crate) async fn query_with_prefix(
-    redis_db: &mut RedisDB,
+    mut connection: redis::aio::Connection,
     prefix: &str,
     account_id: &str,
 ) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
 
-    let res: redis::RedisResult<Vec<(String, String)>> =
-        with_retries!(redis_db, |connection| async {
-            redis::cmd("HGETALL")
-                .arg(format!("{}:{}", prefix, account_id))
-                .query_async(connection)
-                .await
-        });
+    let res: redis::RedisResult<Vec<(String, String)>> = redis::cmd("HGETALL")
+        .arg(format!("{}:{}", prefix, account_id))
+        .query_async(&mut connection)
+        .await;
 
     let duration = start.elapsed().as_millis();
 

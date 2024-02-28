@@ -14,6 +14,12 @@ enum ServiceError {
     ArgumentError,
 }
 
+impl From<redis::RedisError> for ServiceError {
+    fn from(error: redis::RedisError) -> Self {
+        ServiceError::DatabaseError(database::DatabaseError::RedisError(error))
+    }
+}
+
 impl From<database::DatabaseError> for ServiceError {
     fn from(error: database::DatabaseError) -> Self {
         ServiceError::DatabaseError(error)
@@ -90,12 +96,16 @@ pub async fn staking(
 
     tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-    let query_result: Vec<String> = database::query_with_prefix(
-        &mut app_state.redis_db.lock().expect("Lock poisoning"),
-        "st",
-        &account_id.to_string(),
-    )
-    .await?;
+    let connection = app_state
+        .redis_db
+        .lock()
+        .expect("Lock poisoning")
+        .client
+        .get_async_connection()
+        .await?;
+
+    let query_result: Vec<String> =
+        database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
 
     Ok(web::Json(json!({
         "account_id": account_id,
@@ -114,12 +124,16 @@ pub async fn ft(
 
     tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-    let query_result: Vec<String> = database::query_with_prefix(
-        &mut app_state.redis_db.lock().expect("Lock poisoning"),
-        "ft",
-        &account_id.to_string(),
-    )
-    .await?;
+    let connection = app_state
+        .redis_db
+        .lock()
+        .expect("Lock poisoning")
+        .client
+        .get_async_connection()
+        .await?;
+
+    let query_result: Vec<String> =
+        database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
 
     Ok(web::Json(json!({
         "account_id": account_id,
@@ -138,12 +152,16 @@ pub async fn nft(
 
     tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
 
-    let query_result: Vec<String> = database::query_with_prefix(
-        &mut app_state.redis_db.lock().expect("Lock poisoning"),
-        "nf",
-        &account_id.to_string(),
-    )
-    .await?;
+    let connection = app_state
+        .redis_db
+        .lock()
+        .expect("Lock poisoning")
+        .client
+        .get_async_connection()
+        .await?;
+
+    let query_result: Vec<String> =
+        database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
 
     Ok(web::Json(json!({
         "account_id": account_id,

@@ -1,8 +1,6 @@
-use crate::*;
 use std::env;
 
-use clickhouse::{Client, Row};
-use serde::Deserialize;
+use clickhouse::Client;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 const LIMIT: u64 = 10;

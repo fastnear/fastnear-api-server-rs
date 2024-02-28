@@ -9,9 +9,7 @@ use std::sync::{Arc, Mutex};
 use crate::redis_db::RedisDB;
 use actix_cors::Cors;
 use actix_web::http::header;
-use actix_web::{
-    get, middleware, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{get, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]

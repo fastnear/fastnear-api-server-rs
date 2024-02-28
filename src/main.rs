@@ -54,7 +54,9 @@ async fn main() -> std::io::Result<()> {
                 redis_db: redis_db.clone(),
             }))
             .wrap(cors)
-            .wrap(middleware::Logger::default())
+            .wrap(middleware::Logger::new(
+                "%{r}a \"%r\"	%s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
+            ))
             .wrap(tracing_actix_web::TracingLogger::default())
             .service(
                 web::scope("/v0")

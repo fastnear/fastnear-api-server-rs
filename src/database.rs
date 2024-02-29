@@ -3,7 +3,7 @@ use std::env;
 use clickhouse::Client;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-const LIMIT: u64 = 10;
+const LIMIT: u64 = 100;
 
 const TARGET_DB: &str = "database";
 

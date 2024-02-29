@@ -85,6 +85,27 @@ pub async fn lookup_by_public_key_all(
     })))
 }
 
+#[get("/account/{account_id}/full_keys")]
+pub async fn account_keys(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let account_id =
+        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+            .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up public_keys for account: {}", account_id);
+
+    let query_result: Vec<String> =
+        database::query_public_keys_by_account(&app_state.db, &account_id.to_string(), false)
+            .await?;
+
+    Ok(web::Json(json!({
+        "account_id": account_id,
+        "public_keys": query_result,
+    })))
+}
+
 #[get("/account/{account_id}/staking")]
 pub async fn staking(
     request: HttpRequest,

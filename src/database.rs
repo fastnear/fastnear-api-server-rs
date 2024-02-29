@@ -4,6 +4,10 @@ use clickhouse::Client;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 const LIMIT: u64 = 100;
+const KEYS_LIMIT: u64 = 1000;
+
+const QUERY_PUBLIC_KEYS_TIMELIMIT: f64 = 1.0;
+const QUERY_ACCOUNTS_TIMELIMIT: f64 = 1.0;
 
 const TARGET_DB: &str = "database";
 
@@ -61,11 +65,12 @@ pub(crate) async fn query_account_by_public_key(
 ) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
     let res = client
-        .query(&format!("SELECT account_id FROM actions WHERE public_key = ? and status = ? and action = ? {}order by block_height desc limit ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
+        .query(&format!("SELECT distinct account_id FROM actions WHERE public_key = ? and status = ? and action = ? {}order by block_height desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
         .bind(public_key)
         .bind(ReceiptStatus::Success)
         .bind(ActionKind::AddKey)
         .bind(LIMIT)
+        .bind(QUERY_ACCOUNTS_TIMELIMIT)
         .fetch_all::<String>()
         .await;
 
@@ -75,6 +80,31 @@ pub(crate) async fn query_account_by_public_key(
         duration,
         all_public_keys,
         public_key);
+
+    Ok(res?)
+}
+
+pub(crate) async fn query_public_keys_by_account(
+    client: &Client,
+    account_id: &str,
+    all_public_keys: bool,
+) -> Result<Vec<String>, DatabaseError> {
+    let start = std::time::Instant::now();
+    let res = client
+        .query(&format!("SELECT distinct public_key FROM actions WHERE account_id = ? and status = ? and action = ? {}order by block_height desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
+        .bind(account_id)
+        .bind(ReceiptStatus::Success)
+        .bind(ActionKind::AddKey)
+        .bind(KEYS_LIMIT)
+        .bind(QUERY_PUBLIC_KEYS_TIMELIMIT)
+        .fetch_all::<String>()
+        .await;
+
+    let duration = start.elapsed().as_millis();
+
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_public_keys_by_account {}",
+        duration,
+        account_id);
 
     Ok(res?)
 }

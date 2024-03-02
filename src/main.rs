@@ -1,6 +1,7 @@
 mod api;
 mod database;
 mod redis_db;
+mod rpc;
 
 use dotenv::dotenv;
 use std::env;
@@ -65,6 +66,7 @@ async fn main() -> std::io::Result<()> {
                     .service(api::account_keys)
                     .service(api::staking)
                     .service(api::ft)
+                    .service(api::ft_with_balances)
                     .service(api::nft),
             )
             .route("/", web::get().to(greet))

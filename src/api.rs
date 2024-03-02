@@ -3,6 +3,7 @@ use actix_web::ResponseError;
 use near_account_id::AccountId;
 use near_crypto::PublicKey;
 use serde_json::json;
+use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 
@@ -11,6 +12,7 @@ const TARGET_API: &str = "api";
 #[derive(Debug)]
 enum ServiceError {
     DatabaseError(database::DatabaseError),
+    RpcError(rpc::RpcError),
     ArgumentError,
 }
 
@@ -26,11 +28,18 @@ impl From<database::DatabaseError> for ServiceError {
     }
 }
 
+impl From<rpc::RpcError> for ServiceError {
+    fn from(error: rpc::RpcError) -> Self {
+        ServiceError::RpcError(error)
+    }
+}
+
 impl fmt::Display for ServiceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ServiceError::DatabaseError(ref message) => write!(f, "Database Error: {:?}", message),
+            ServiceError::DatabaseError(ref err) => write!(f, "Database Error: {:?}", err),
             ServiceError::ArgumentError => write!(f, "Invalid argument"),
+            ServiceError::RpcError(ref err) => write!(f, "Rpc Error: {:?}", err),
         }
     }
 }
@@ -42,6 +51,9 @@ impl ResponseError for ServiceError {
                 HttpResponse::InternalServerError().json("Internal server error")
             }
             ServiceError::ArgumentError => HttpResponse::BadRequest().json("Invalid argument"),
+            ServiceError::RpcError(ref e) => {
+                HttpResponse::InternalServerError().json(format!("Internal server error {:?}", e))
+            }
         }
     }
 }
@@ -159,6 +171,38 @@ pub async fn ft(
     Ok(web::Json(json!({
         "account_id": account_id,
         "contract_ids": query_result,
+    })))
+}
+
+#[get("/account/{account_id}/ft_with_balances")]
+pub async fn ft_with_balances(
+    request: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, ServiceError> {
+    let account_id =
+        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+            .map_err(|_| ServiceError::ArgumentError)?;
+
+    tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+
+    let connection = app_state
+        .redis_db
+        .lock()
+        .expect("Lock poisoning")
+        .client
+        .get_async_connection()
+        .await?;
+
+    let account_id = account_id.to_string();
+
+    let token_ids: Vec<String> = database::query_with_prefix(connection, "ft", &account_id).await?;
+
+    let token_balances: HashMap<String, Option<String>> =
+        rpc::get_ft_balances(&account_id, &token_ids).await?;
+
+    Ok(web::Json(json!({
+        "account_id": account_id,
+        "tokens": token_balances,
     })))
 }
 

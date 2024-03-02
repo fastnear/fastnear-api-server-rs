@@ -49,7 +49,7 @@ pub(crate) async fn get_ft_balances(
     token_ids: &[String],
 ) -> Result<HashMap<String, Option<String>>, RpcError> {
     let mut token_balances = HashMap::new();
-    if (token_ids.is_empty()) {
+    if token_ids.is_empty() {
         return Ok(token_balances);
     }
     let start = std::time::Instant::now();

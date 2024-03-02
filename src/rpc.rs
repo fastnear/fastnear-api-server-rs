@@ -48,6 +48,10 @@ pub(crate) async fn get_ft_balances(
     account_id: &str,
     token_ids: &[String],
 ) -> Result<HashMap<String, Option<String>>, RpcError> {
+    let mut token_balances = HashMap::new();
+    if (token_ids.is_empty()) {
+        return Ok(token_balances);
+    }
     let start = std::time::Instant::now();
     let client = Client::new();
     let request = token_ids
@@ -73,7 +77,6 @@ pub(crate) async fn get_ft_balances(
         .send()
         .await?;
     let responses = response.json::<Vec<JsonResponse>>().await?;
-    let mut token_balances = HashMap::new();
     for response in responses {
         let id: usize = response
             .id

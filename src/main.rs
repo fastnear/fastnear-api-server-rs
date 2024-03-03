@@ -5,9 +5,7 @@ mod rpc;
 
 use dotenv::dotenv;
 use std::env;
-use std::sync::{Arc, Mutex};
 
-use crate::redis_db::RedisDB;
 use actix_cors::Cors;
 use actix_web::http::header;
 use actix_web::{get, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
@@ -16,14 +14,14 @@ use tracing_subscriber::EnvFilter;
 #[derive(Clone)]
 pub struct AppState {
     pub db: clickhouse::Client,
-    pub redis_db: Arc<Mutex<RedisDB>>,
+    pub redis_client: redis::Client,
 }
 
 async fn greet() -> impl Responder {
     HttpResponse::Ok().body("Hello, Actix Web!")
 }
 
-#[actix_web::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
@@ -34,7 +32,9 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     let db = database::establish_connection();
-    let redis_db = Arc::new(Mutex::new(RedisDB::new(None).await));
+    let redis_client =
+        redis::Client::open(env::var("REDIS_URL").expect("Missing REDIS_URL env var"))
+            .expect("Failed to connect to Redis");
 
     HttpServer::new(move || {
         // Configure CORS middleware
@@ -52,7 +52,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(AppState {
                 db: db.clone(),
-                redis_db: redis_db.clone(),
+                redis_client: redis_client.clone(),
             }))
             .wrap(cors)
             .wrap(middleware::Logger::new(
@@ -73,5 +73,7 @@ async fn main() -> std::io::Result<()> {
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?
     .run()
-    .await
+    .await?;
+
+    Ok(())
 }

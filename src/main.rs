@@ -49,6 +49,18 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600)
             .supports_credentials();
 
+        let mut apis = web::scope("/v0")
+            .service(api::lookup_by_public_key)
+            .service(api::lookup_by_public_key_all)
+            .service(api::staking)
+            .service(api::ft)
+            .service(api::nft);
+        if env::var("ENABLE_EXPERIMENTAL").ok() == Some("true".to_string()) {
+            apis = apis
+                .service(api::account_keys)
+                .service(api::ft_with_balances);
+        }
+
         App::new()
             .app_data(web::Data::new(AppState {
                 db: db.clone(),
@@ -59,16 +71,7 @@ async fn main() -> std::io::Result<()> {
                 "%{r}a \"%r\"	%s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
             ))
             .wrap(tracing_actix_web::TracingLogger::default())
-            .service(
-                web::scope("/v0")
-                    .service(api::lookup_by_public_key)
-                    .service(api::lookup_by_public_key_all)
-                    .service(api::account_keys)
-                    .service(api::staking)
-                    .service(api::ft)
-                    .service(api::ft_with_balances)
-                    .service(api::nft),
-            )
+            .service(apis)
             .route("/", web::get().to(greet))
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?

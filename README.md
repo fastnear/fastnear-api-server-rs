@@ -7,8 +7,8 @@ The low-latency API for wallets and explorers.
 There are 4 APIs provided to replace deprecated `api.kitwallet.app` endpoint:
 
 1. Public Key to Account ID mapping.
-   2. Full Access Public Key to Account ID mapping.
-   3. Any Public Key to Account ID mapping.
+   - Full Access Public Key to Account ID mapping.
+   - Any Public Key to Account ID mapping.
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).

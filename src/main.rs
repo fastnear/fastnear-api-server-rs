@@ -2,6 +2,7 @@ mod api;
 mod database;
 mod redis_db;
 mod rpc;
+mod utils;
 
 use dotenv::dotenv;
 use std::env;
@@ -49,17 +50,25 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600)
             .supports_credentials();
 
-        let mut apis = web::scope("/v0")
-            .service(api::lookup_by_public_key)
-            .service(api::lookup_by_public_key_all)
-            .service(api::staking)
-            .service(api::ft)
-            .service(api::nft);
+        let api_v0 = web::scope("/v0")
+            .service(api::v0::lookup_by_public_key)
+            .service(api::v0::lookup_by_public_key_all)
+            .service(api::v0::staking)
+            .service(api::v0::ft)
+            .service(api::v0::nft);
+
+        let mut api_exp = web::scope("/exp");
+
         if env::var("ENABLE_EXPERIMENTAL").ok() == Some("true".to_string()) {
-            apis = apis
-                .service(api::account_keys)
-                .service(api::ft_with_balances);
+            api_exp = api_exp
+                .service(api::exp::account_keys)
+                .service(api::exp::ft_with_balances);
         }
+
+        let api_v1 = web::scope("/v1")
+            .service(api::v1::staking)
+            .service(api::v1::ft)
+            .service(api::v1::nft);
 
         App::new()
             .app_data(web::Data::new(AppState {
@@ -71,7 +80,9 @@ async fn main() -> std::io::Result<()> {
                 "%{r}a \"%r\"	%s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
             ))
             .wrap(tracing_actix_web::TracingLogger::default())
-            .service(apis)
+            .service(api_v0)
+            .service(api_exp)
+            .service(api_v1)
             .route("/", web::get().to(greet))
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?

@@ -1,3 +1,4 @@
+use crate::api::BlockHeight;
 use base64::prelude::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -46,7 +47,7 @@ struct FunctionCallResponse {
 
 pub(crate) async fn get_ft_balances(
     account_id: &str,
-    token_ids: &[String],
+    token_ids: &[(String, Option<BlockHeight>)],
 ) -> Result<HashMap<String, Option<String>>, RpcError> {
     let mut token_balances = HashMap::new();
     if token_ids.is_empty() {
@@ -57,7 +58,7 @@ pub(crate) async fn get_ft_balances(
     let request = token_ids
         .iter()
         .enumerate()
-        .map(|(id, token_id)| JsonRequest {
+        .map(|(id, (token_id, _))| JsonRequest {
             jsonrpc: "2.0".to_string(),
             method: "query".to_string(),
             params: json!({
@@ -85,7 +86,8 @@ pub(crate) async fn get_ft_balances(
         let token_id = token_ids
             .get(id)
             .ok_or(RpcError::InvalidJsonRpcResponse)?
-            .clone();
+            .clone()
+            .0;
         let balance = if let Some(res) = response.result {
             let fc: FunctionCallResponse =
                 serde_json::from_value(res).map_err(|_| RpcError::InvalidFunctionCallResponse)?;

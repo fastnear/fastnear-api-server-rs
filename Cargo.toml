@@ -1,6 +1,6 @@
 [package]
 name = "data-server"
-version = "0.2.0"
+version = "0.4.0"
 edition = "2021"
 
 [[bin]]
@@ -10,7 +10,7 @@ name = "server"
 [dependencies]
 actix-web = "4.5.1"
 actix-cors = "0.7.0"
-serde = { version = "1", features = [ "derive" ] }
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_repr = "0.1.6"
 clickhouse = "0.11.6"
@@ -27,3 +27,4 @@ near-crypto = "0.20.0"
 
 reqwest = { version = "0.11.24", features = ["json"] }
 base64 = "0.21.7"
+hex = "0.4.3"

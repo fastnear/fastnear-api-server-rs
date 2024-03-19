@@ -167,7 +167,7 @@ Result:
 }
 ```
 
-### Account ID to non-fungible tokens (NFT contracts).
+#### Account ID to non-fungible tokens (NFT contracts).
 
 Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received.
 
@@ -346,7 +346,7 @@ Result:
 }
 ```
 
-### Account ID to non-fungible tokens (NFT contracts).
+#### Account ID to non-fungible tokens (NFT contracts).
 
 Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received, including the
 block height when the last change was made on the contract that affected this given account.

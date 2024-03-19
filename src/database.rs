@@ -1,9 +1,10 @@
 use std::env;
 
+use crate::api::BlockHeight;
 use clickhouse::Client;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-const LIMIT: u64 = 100;
+const LIMIT: u64 = 250;
 const KEYS_LIMIT: u64 = 1000;
 
 const QUERY_PUBLIC_KEYS_TIMELIMIT: f64 = 2.0;
@@ -65,7 +66,7 @@ pub(crate) async fn query_account_by_public_key(
 ) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
     let res = client
-        .query(&format!("SELECT distinct account_id FROM actions WHERE public_key = ? and status = ? and action = ? {}order by block_timestamp desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
+        .query(&format!("SELECT distinct account_id FROM actions WHERE public_key = ? and status = ? and action = ? {}order by block_timestamp desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL " } else { "" }))
         .bind(public_key)
         .bind(ReceiptStatus::Success)
         .bind(ActionKind::AddKey)
@@ -91,7 +92,7 @@ pub(crate) async fn query_public_keys_by_account(
 ) -> Result<Vec<String>, DatabaseError> {
     let start = std::time::Instant::now();
     let res = client
-        .query(&format!("SELECT distinct public_key FROM actions WHERE account_id = ? and status = ? and action = ? {}order by block_timestamp desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL "} else { "" }))
+        .query(&format!("SELECT distinct public_key FROM actions WHERE account_id = ? and status = ? and action = ? {}order by block_timestamp desc limit ? SETTINGS max_execution_time = ?", if !all_public_keys { "and access_key_contract_id IS NULL " } else { "" }))
         .bind(account_id)
         .bind(ReceiptStatus::Success)
         .bind(ActionKind::AddKey)
@@ -113,7 +114,7 @@ pub(crate) async fn query_with_prefix(
     mut connection: redis::aio::Connection,
     prefix: &str,
     account_id: &str,
-) -> Result<Vec<String>, DatabaseError> {
+) -> Result<Vec<(String, Option<BlockHeight>)>, DatabaseError> {
     let start = std::time::Instant::now();
 
     let res: redis::RedisResult<Vec<(String, String)>> = redis::cmd("HGETALL")
@@ -128,5 +129,5 @@ pub(crate) async fn query_with_prefix(
         prefix,
         account_id);
 
-    Ok(res?.into_iter().map(|(k, _)| k).collect())
+    Ok(res?.into_iter().map(|(k, v)| (k, v.parse().ok())).collect())
 }

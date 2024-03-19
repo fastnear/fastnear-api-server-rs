@@ -1,3 +1,4 @@
+use crate::utils::public_key_to_implicit_account;
 use crate::*;
 use actix_web::ResponseError;
 use near_account_id::AccountId;
@@ -8,6 +9,8 @@ use std::fmt;
 use std::str::FromStr;
 
 const TARGET_API: &str = "api";
+
+pub type BlockHeight = u64;
 
 #[derive(Debug)]
 enum ServiceError {
@@ -58,154 +61,254 @@ impl ResponseError for ServiceError {
     }
 }
 
-#[get("/public_key/{public_key}")]
-pub async fn lookup_by_public_key(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
-        .map_err(|_| ServiceError::ArgumentError)?;
+pub mod v0 {
+    use super::*;
 
-    tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
-
-    let query_result: Vec<String> =
-        database::query_account_by_public_key(&app_state.db, &public_key.to_string(), false)
-            .await?;
-
-    Ok(web::Json(json!({
-        "public_key": public_key,
-        "account_ids": query_result,
-    })))
-}
-
-#[get("/public_key/{public_key}/all")]
-pub async fn lookup_by_public_key_all(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
-        .map_err(|_| ServiceError::ArgumentError)?;
-
-    tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
-
-    let query_result: Vec<String> =
-        database::query_account_by_public_key(&app_state.db, &public_key.to_string(), true).await?;
-
-    Ok(web::Json(json!({
-        "public_key": public_key,
-        "account_ids": query_result,
-    })))
-}
-
-#[get("/account/{account_id}/full_keys")]
-pub async fn account_keys(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let account_id =
-        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+    #[get("/public_key/{public_key}")]
+    pub async fn lookup_by_public_key(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
             .map_err(|_| ServiceError::ArgumentError)?;
 
-    tracing::debug!(target: TARGET_API, "Looking up public_keys for account: {}", account_id);
+        tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
-    let query_result: Vec<String> =
-        database::query_public_keys_by_account(&app_state.db, &account_id.to_string(), false)
-            .await?;
+        let mut query_result: Vec<String> =
+            database::query_account_by_public_key(&app_state.db, &public_key.to_string(), false)
+                .await?;
 
-    Ok(web::Json(json!({
-        "account_id": account_id,
-        "public_keys": query_result,
-    })))
-}
+        if let Some(implicit_account) = public_key_to_implicit_account(&public_key) {
+            if !query_result.contains(&implicit_account) {
+                query_result.push(implicit_account);
+            }
+        }
 
-#[get("/account/{account_id}/staking")]
-pub async fn staking(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let account_id =
-        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+        Ok(web::Json(json!({
+            "public_key": public_key,
+            "account_ids": query_result,
+        })))
+    }
+
+    #[get("/public_key/{public_key}/all")]
+    pub async fn lookup_by_public_key_all(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
             .map_err(|_| ServiceError::ArgumentError)?;
 
-    tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
+        tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
-    let connection = app_state.redis_client.get_async_connection().await?;
+        let mut query_result: Vec<String> =
+            database::query_account_by_public_key(&app_state.db, &public_key.to_string(), true)
+                .await?;
 
-    let query_result: Vec<String> =
-        database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
+        if let Some(implicit_account) = public_key_to_implicit_account(&public_key) {
+            if !query_result.contains(&implicit_account) {
+                query_result.push(implicit_account);
+            }
+        }
 
-    Ok(web::Json(json!({
-        "account_id": account_id,
-        "pools": query_result,
-    })))
+        Ok(web::Json(json!({
+            "public_key": public_key,
+            "account_ids": query_result,
+        })))
+    }
+
+    #[get("/account/{account_id}/staking")]
+    pub async fn staking(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
+
+        let connection = app_state.redis_client.get_async_connection().await?;
+
+        let query_result =
+            database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "pools": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
+        })))
+    }
+
+    #[get("/account/{account_id}/ft")]
+    pub async fn ft(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+
+        let connection = app_state.redis_client.get_async_connection().await?;
+
+        let query_result =
+            database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "contract_ids": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
+        })))
+    }
+
+    #[get("/account/{account_id}/nft")]
+    pub async fn nft(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
+
+        let connection = app_state.redis_client.get_async_connection().await?;
+
+        let query_result =
+            database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "contract_ids": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
+        })))
+    }
 }
 
-#[get("/account/{account_id}/ft")]
-pub async fn ft(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let account_id =
-        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
-            .map_err(|_| ServiceError::ArgumentError)?;
+pub mod exp {
+    use super::*;
 
-    tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+    #[get("/account/{account_id}/full_keys")]
+    pub async fn account_keys(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
 
-    let connection = app_state.redis_client.get_async_connection().await?;
+        tracing::debug!(target: TARGET_API, "Looking up public_keys for account: {}", account_id);
 
-    let query_result: Vec<String> =
-        database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
+        let query_result: Vec<String> =
+            database::query_public_keys_by_account(&app_state.db, &account_id.to_string(), false)
+                .await?;
 
-    Ok(web::Json(json!({
-        "account_id": account_id,
-        "contract_ids": query_result,
-    })))
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "public_keys": query_result,
+        })))
+    }
+
+    #[get("/account/{account_id}/ft_with_balances")]
+    pub async fn ft_with_balances(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+
+        let connection = app_state.redis_client.get_async_connection().await?;
+
+        let account_id = account_id.to_string();
+
+        let token_ids = database::query_with_prefix(connection, "ft", &account_id).await?;
+
+        let token_balances: HashMap<String, Option<String>> =
+            rpc::get_ft_balances(&account_id, &token_ids).await?;
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "tokens": token_balances,
+        })))
+    }
 }
 
-#[get("/account/{account_id}/ft_with_balances")]
-pub async fn ft_with_balances(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let account_id =
-        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
-            .map_err(|_| ServiceError::ArgumentError)?;
+pub mod v1 {
+    use super::*;
 
-    tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
+    #[get("/account/{account_id}/staking")]
+    pub async fn staking(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
 
-    let connection = app_state.redis_client.get_async_connection().await?;
+        tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-    let account_id = account_id.to_string();
+        let connection = app_state.redis_client.get_async_connection().await?;
 
-    let token_ids: Vec<String> = database::query_with_prefix(connection, "ft", &account_id).await?;
+        let query_result =
+            database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
 
-    let token_balances: HashMap<String, Option<String>> =
-        rpc::get_ft_balances(&account_id, &token_ids).await?;
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "pools": query_result.into_iter().map(|(pool_id, last_update_block_height)| json!({
+                "pool_id": pool_id,
+                "last_update_block_height": last_update_block_height,
+            })).collect::<Vec<_>>()
+        })))
+    }
 
-    Ok(web::Json(json!({
-        "account_id": account_id,
-        "tokens": token_balances,
-    })))
-}
+    #[get("/account/{account_id}/ft")]
+    pub async fn ft(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
 
-#[get("/account/{account_id}/nft")]
-pub async fn nft(
-    request: HttpRequest,
-    app_state: web::Data<AppState>,
-) -> Result<impl Responder, ServiceError> {
-    let account_id =
-        AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
-            .map_err(|_| ServiceError::ArgumentError)?;
+        tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-    tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
+        let connection = app_state.redis_client.get_async_connection().await?;
 
-    let connection = app_state.redis_client.get_async_connection().await?;
+        let query_result =
+            database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
 
-    let query_result: Vec<String> =
-        database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "tokens": query_result.into_iter().map(|(contract_id, last_update_block_height)| json!({
+                "contract_id": contract_id,
+                "last_update_block_height": last_update_block_height,
+            })).collect::<Vec<_>>()
+        })))
+    }
 
-    Ok(web::Json(json!({
-        "account_id": account_id,
-        "contract_ids": query_result,
-    })))
+    #[get("/account/{account_id}/nft")]
+    pub async fn nft(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
+
+        let connection = app_state.redis_client.get_async_connection().await?;
+
+        let query_result =
+            database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "tokens": query_result.into_iter().map(|(contract_id, last_update_block_height)| json!({
+                "contract_id": contract_id,
+                "last_update_block_height": last_update_block_height,
+            })).collect::<Vec<_>>()
+        })))
+    }
 }

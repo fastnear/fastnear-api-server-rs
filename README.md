@@ -15,6 +15,208 @@ APIs:
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
 
+## API V1
+
+In API V1, the API endpoints provide extra details about the contracts.
+E.g. the block height when the last change was made on a contract that affected a given account.
+
+#### Account ID to delegated staking pools (validators).
+
+Returns the list of staking pools that the account has delegated to in the past, including the block
+height when the last change was made on the staking pool by the account.
+
+Note, if the `last_update_block_height` is `null`, then no recent updates were made.
+
+```
+GET /v1/account/{account_id}/staking
+```
+
+Example: https://api.fastnear.com/v1/account/mob.near/staking
+
+```bash
+curl https://api.fastnear.com/v1/account/mob.near/staking
+```
+
+Result:
+
+```json
+{
+  "account_id": "mob.near",
+  "pools": [
+    {
+      "last_update_block_height": 114976469,
+      "pool_id": "zavodil.poolv1.near"
+    },
+    {
+      "last_update_block_height": null,
+      "pool_id": "usn.pool.near"
+    },
+    {
+      "last_update_block_height": null,
+      "pool_id": "usn-unofficial.pool.near"
+    },
+    {
+      "last_update_block_height": null,
+      "pool_id": "epic.poolv1.near"
+    },
+    {
+      "last_update_block_height": 114976560,
+      "pool_id": "here.poolv1.near"
+    }
+  ]
+}
+```
+
+#### Account ID to fungible tokens (FT contracts).
+
+Returns the list of fungible tokens (FT) contracts that the account has interacted with or received, including the
+block height when the last change was made on the contract that affected this given account.
+
+Note, if the `last_update_block_height` is `null`, then no recent updates were made.
+
+```
+GET /v1/account/{account_id}/ft
+```
+
+Example: https://api.fastnear.com/v1/account/here.near/ft
+
+```bash
+curl https://api.fastnear.com/v1/account/here.near/ft
+```
+
+Result:
+
+```json
+{
+  "account_id": "here.tg",
+  "tokens": [
+    {
+      "contract_id": "game.hot.tg",
+      "last_update_block_height": 115041262
+    },
+    {
+      "contract_id": "usdt.tether-token.near",
+      "last_update_block_height": null
+    }
+  ]
+}
+```
+
+#### Account ID to non-fungible tokens (NFT contracts).
+
+Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received, including the
+block height when the last change was made on the contract that affected this given account.
+
+Note, if the `last_update_block_height` is `null`, then no recent updates were made.
+
+```
+GET /v1/account/{account_id}/nft
+```
+
+Example: https://api.fastnear.com/v1/account/sharddog.near/nft
+
+```bash
+curl https://api.fastnear.com/v1/account/sharddog.near/nft
+```
+
+Result:
+
+```json
+{
+  "account_id": "sharddog.near",
+  "tokens": [
+    {
+      "contract_id": "mint.sharddog.near",
+      "last_update_block_height": 115034954
+    },
+    {
+      "contract_id": "open.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "humansofbrazil.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "nft.bluntdao.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "ndcconstellationnft.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "mmc.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "nft.genadrop.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "harvestmoon.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "comic.sharddog.near",
+      "last_update_block_height": 114988538
+    },
+    {
+      "contract_id": "meteor.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "nstreetwolves.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "starpause.mintbase1.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "rubenm4rcusstore.mintbase1.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "rogues-genesis.nfts.fewandfar.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "nft.regens.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "mmc-mint.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "badges.devhub.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "secretnft.devhub.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "giveaway.mydev.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "mintv2.sharddog.near",
+      "last_update_block_height": 114973604
+    },
+    {
+      "contract_id": "nearvidia.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "claim.sharddog.near",
+      "last_update_block_height": 115039779
+    }
+  ]
+}
+```
+
 ## API V0
 
 #### Full Access Public Key to Account ID mapping.
@@ -255,208 +457,6 @@ Result:
     "asac.near",
     "x.paras.near",
     "athlete.nfl.playible.near"
-  ]
-}
-```
-
-## API V1
-
-In API V1, the API endpoints provide extra details about the contracts.
-E.g. the block height when the last change was made on a contract that affected a given account.
-
-#### Account ID to delegated staking pools (validators).
-
-Returns the list of staking pools that the account has delegated to in the past, including the block
-height when the last change was made on the staking pool by the account.
-
-Note, if the `last_update_block_height` is `null`, then no recent updates were made.
-
-```
-GET /v1/account/{account_id}/staking
-```
-
-Example: https://api.fastnear.com/v1/account/mob.near/staking
-
-```bash
-curl https://api.fastnear.com/v1/account/mob.near/staking
-```
-
-Result:
-
-```json
-{
-  "account_id": "mob.near",
-  "pools": [
-    {
-      "last_update_block_height": 114976469,
-      "pool_id": "zavodil.poolv1.near"
-    },
-    {
-      "last_update_block_height": null,
-      "pool_id": "usn.pool.near"
-    },
-    {
-      "last_update_block_height": null,
-      "pool_id": "usn-unofficial.pool.near"
-    },
-    {
-      "last_update_block_height": null,
-      "pool_id": "epic.poolv1.near"
-    },
-    {
-      "last_update_block_height": 114976560,
-      "pool_id": "here.poolv1.near"
-    }
-  ]
-}
-```
-
-#### Account ID to fungible tokens (FT contracts).
-
-Returns the list of fungible tokens (FT) contracts that the account has interacted with or received, including the
-block height when the last change was made on the contract that affected this given account.
-
-Note, if the `last_update_block_height` is `null`, then no recent updates were made.
-
-```
-GET /v1/account/{account_id}/ft
-```
-
-Example: https://api.fastnear.com/v1/account/here.near/ft
-
-```bash
-curl https://api.fastnear.com/v1/account/here.near/ft
-```
-
-Result:
-
-```json
-{
-  "account_id": "here.tg",
-  "tokens": [
-    {
-      "contract_id": "game.hot.tg",
-      "last_update_block_height": 115041262
-    },
-    {
-      "contract_id": "usdt.tether-token.near",
-      "last_update_block_height": null
-    }
-  ]
-}
-```
-
-#### Account ID to non-fungible tokens (NFT contracts).
-
-Returns the list of non-fungible tokens (NFT) contracts that the account has interacted with or received, including the
-block height when the last change was made on the contract that affected this given account.
-
-Note, if the `last_update_block_height` is `null`, then no recent updates were made.
-
-```
-GET /v1/account/{account_id}/nft
-```
-
-Example: https://api.fastnear.com/v1/account/sharddog.near/nft
-
-```bash
-curl https://api.fastnear.com/v1/account/sharddog.near/nft
-```
-
-Result:
-
-```json
-{
-  "account_id": "sharddog.near",
-  "tokens": [
-    {
-      "contract_id": "mint.sharddog.near",
-      "last_update_block_height": 115034954
-    },
-    {
-      "contract_id": "open.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "humansofbrazil.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "nft.bluntdao.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "ndcconstellationnft.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "mmc.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "nft.genadrop.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "harvestmoon.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "comic.sharddog.near",
-      "last_update_block_height": 114988538
-    },
-    {
-      "contract_id": "meteor.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "nstreetwolves.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "starpause.mintbase1.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "rubenm4rcusstore.mintbase1.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "rogues-genesis.nfts.fewandfar.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "nft.regens.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "mmc-mint.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "badges.devhub.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "secretnft.devhub.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "giveaway.mydev.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "mintv2.sharddog.near",
-      "last_update_block_height": 114973604
-    },
-    {
-      "contract_id": "nearvidia.sharddog.near",
-      "last_update_block_height": null
-    },
-    {
-      "contract_id": "claim.sharddog.near",
-      "last_update_block_height": 115039779
-    }
   ]
 }
 ```

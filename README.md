@@ -7,8 +7,10 @@ The low-latency API for wallets and explorers.
 APIs:
 
 1. Public Key to Account ID mapping.
-  - Full Access Public Key to Account ID mapping.
-  - Any Public Key to Account ID mapping.
+
+- Full Access Public Key to Account ID mapping.
+- Any Public Key to Account ID mapping.
+
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
@@ -315,8 +317,6 @@ Returns the list of fungible tokens (FT) contracts that the account has interact
 block height when the last change was made on the contract that affected this given account.
 
 Note, if the `last_update_block_height` is `null`, then no recent updates were made.
-
-*Deprecated in favor of API V1.*
 
 ```
 GET /v1/account/{account_id}/ft

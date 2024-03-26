@@ -1,4 +1,3 @@
-use crate::utils::public_key_to_implicit_account;
 use crate::*;
 use actix_web::ResponseError;
 use near_account_id::AccountId;
@@ -74,19 +73,19 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
-        let mut query_result: Vec<String> =
-            database::query_account_by_public_key(&app_state.db, &public_key.to_string(), false)
-                .await?;
+        let connection = app_state.redis_client.get_async_connection().await?;
 
-        if let Some(implicit_account) = public_key_to_implicit_account(&public_key) {
-            if !query_result.contains(&implicit_account) {
-                query_result.push(implicit_account);
-            }
-        }
+        let public_key = public_key.to_string();
+
+        let account_ids = database::query_with_prefix(connection, "pk", &public_key).await?;
 
         Ok(web::Json(json!({
             "public_key": public_key,
-            "account_ids": query_result,
+            "account_ids": account_ids.into_iter().filter_map(|(k, v)| if v == "f" {
+                Some(k)
+            } else {
+                None
+            }).collect::<Vec<_>>(),
         })))
     }
 
@@ -100,19 +99,15 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
-        let mut query_result: Vec<String> =
-            database::query_account_by_public_key(&app_state.db, &public_key.to_string(), true)
-                .await?;
+        let connection = app_state.redis_client.get_async_connection().await?;
 
-        if let Some(implicit_account) = public_key_to_implicit_account(&public_key) {
-            if !query_result.contains(&implicit_account) {
-                query_result.push(implicit_account);
-            }
-        }
+        let public_key = public_key.to_string();
+
+        let account_ids = database::query_with_prefix(connection, "pk", &public_key).await?;
 
         Ok(web::Json(json!({
             "public_key": public_key,
-            "account_ids": query_result,
+            "account_ids": account_ids.into_iter().map(|(k, _v)| k).collect::<Vec<_>>(),
         })))
     }
 
@@ -186,27 +181,6 @@ pub mod v0 {
 pub mod exp {
     use super::*;
 
-    #[get("/account/{account_id}/full_keys")]
-    pub async fn account_keys(
-        request: HttpRequest,
-        app_state: web::Data<AppState>,
-    ) -> Result<impl Responder, ServiceError> {
-        let account_id =
-            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
-                .map_err(|_| ServiceError::ArgumentError)?;
-
-        tracing::debug!(target: TARGET_API, "Looking up public_keys for account: {}", account_id);
-
-        let query_result: Vec<String> =
-            database::query_public_keys_by_account(&app_state.db, &account_id.to_string(), false)
-                .await?;
-
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "public_keys": query_result,
-        })))
-    }
-
     #[get("/account/{account_id}/ft_with_balances")]
     pub async fn ft_with_balances(
         request: HttpRequest,
@@ -222,7 +196,7 @@ pub mod exp {
 
         let account_id = account_id.to_string();
 
-        let token_ids = database::query_with_prefix(connection, "ft", &account_id).await?;
+        let token_ids = database::query_with_prefix_parse(connection, "ft", &account_id).await?;
 
         let token_balances: HashMap<String, Option<String>> =
             rpc::get_ft_balances(&account_id, &token_ids).await?;
@@ -251,7 +225,7 @@ pub mod v1 {
         let connection = app_state.redis_client.get_async_connection().await?;
 
         let query_result =
-            database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(connection, "st", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -276,7 +250,7 @@ pub mod v1 {
         let connection = app_state.redis_client.get_async_connection().await?;
 
         let query_result =
-            database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(connection, "ft", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -301,7 +275,7 @@ pub mod v1 {
         let connection = app_state.redis_client.get_async_connection().await?;
 
         let query_result =
-            database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(connection, "nf", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,

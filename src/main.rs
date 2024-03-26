@@ -2,7 +2,6 @@ mod api;
 mod database;
 mod redis_db;
 mod rpc;
-mod utils;
 
 use dotenv::dotenv;
 use std::env;
@@ -14,7 +13,6 @@ use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub db: clickhouse::Client,
     pub redis_client: redis::Client,
 }
 
@@ -32,7 +30,6 @@ async fn main() -> std::io::Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
-    let db = database::establish_connection();
     let redis_client =
         redis::Client::open(env::var("REDIS_URL").expect("Missing REDIS_URL env var"))
             .expect("Failed to connect to Redis");
@@ -60,9 +57,7 @@ async fn main() -> std::io::Result<()> {
         let mut api_exp = web::scope("/exp");
 
         if env::var("ENABLE_EXPERIMENTAL").ok() == Some("true".to_string()) {
-            api_exp = api_exp
-                .service(api::exp::account_keys)
-                .service(api::exp::ft_with_balances);
+            api_exp = api_exp.service(api::exp::ft_with_balances);
         }
 
         let api_v1 = web::scope("/v1")
@@ -72,7 +67,6 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .app_data(web::Data::new(AppState {
-                db: db.clone(),
                 redis_client: redis_client.clone(),
             }))
             .wrap(cors)

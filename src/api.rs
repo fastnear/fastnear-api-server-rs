@@ -73,7 +73,10 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let public_key = public_key.to_string();
 
@@ -99,7 +102,10 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let public_key = public_key.to_string();
 
@@ -122,7 +128,10 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let query_result =
             database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
@@ -144,7 +153,10 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let query_result =
             database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
@@ -166,7 +178,10 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let query_result =
             database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
@@ -192,7 +207,10 @@ pub mod exp {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let account_id = account_id.to_string();
 
@@ -222,7 +240,10 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let query_result =
             database::query_with_prefix_parse(connection, "st", &account_id.to_string()).await?;
@@ -247,7 +268,11 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
+        let duration = start.elapsed().as_millis();
 
         let query_result =
             database::query_with_prefix_parse(connection, "ft", &account_id.to_string()).await?;
@@ -272,7 +297,10 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state.redis_client.get_async_connection().await?;
+        let connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
 
         let query_result =
             database::query_with_prefix_parse(connection, "nf", &account_id.to_string()).await?;

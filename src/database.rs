@@ -14,7 +14,7 @@ impl From<redis::RedisError> for DatabaseError {
 }
 
 pub(crate) async fn query_with_prefix(
-    mut connection: redis::aio::Connection,
+    mut connection: redis::aio::MultiplexedConnection,
     prefix: &str,
     account_id: &str,
 ) -> Result<Vec<(String, String)>, DatabaseError> {
@@ -36,7 +36,7 @@ pub(crate) async fn query_with_prefix(
 }
 
 pub(crate) async fn query_with_prefix_parse(
-    connection: redis::aio::Connection,
+    connection: redis::aio::MultiplexedConnection,
     prefix: &str,
     account_id: &str,
 ) -> Result<Vec<(String, Option<BlockHeight>)>, DatabaseError> {

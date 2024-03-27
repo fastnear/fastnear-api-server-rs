@@ -272,7 +272,6 @@ pub mod v1 {
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
-        let duration = start.elapsed().as_millis();
 
         let query_result =
             database::query_with_prefix_parse(connection, "ft", &account_id.to_string()).await?;

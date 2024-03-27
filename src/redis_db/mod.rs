@@ -3,13 +3,13 @@ mod stream;
 use stream::*;
 
 use itertools::Itertools;
-use redis::aio::Connection;
+use redis::aio::MultiplexedConnection;
 use redis::Client;
 use std::env;
 
 pub struct RedisDB {
     pub client: Client,
-    pub connection: Connection,
+    pub connection: MultiplexedConnection,
 }
 
 #[allow(dead_code)]
@@ -20,14 +20,14 @@ impl RedisDB {
         )
         .expect("Failed to connect to Redis");
         let connection = client
-            .get_async_connection()
+            .get_multiplexed_async_connection()
             .await
             .expect("Failed to on Redis connection");
         Self { client, connection }
     }
 
     pub async fn reconnect(&mut self) -> redis::RedisResult<()> {
-        self.connection = self.client.get_async_connection().await?;
+        self.connection = self.client.get_multiplexed_async_connection().await?;
         Ok(())
     }
 }

@@ -20,8 +20,9 @@ async fn greet() -> impl Responder {
     HttpResponse::Ok().body("Hello, Actix Web!")
 }
 
-#[tokio::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    openssl_probe::init_ssl_cert_env_vars();
     dotenv().ok();
 
     tracing_subscriber::fmt::Subscriber::builder()

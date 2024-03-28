@@ -69,19 +69,33 @@ Result:
 
 #### Account ID to fungible tokens (FT contracts).
 
-Returns the list of fungible tokens (FT) contracts that the account has interacted with or received, including the
-block height when the last change was made on the contract that affected this given account.
+Returns the list of fungible tokens (FT) contracts that the account may have.
+Each token result includes the following:
 
-Note, if the `last_update_block_height` is `null`, then no recent updates were made.
+- `contract_id` - the account ID of the fungible token contract.
+- `last_update_block_height` - the block height when the last change was made on the contract that affected this given
+  account.
+- `balance` - the last known balance of the account for this token.
+
+Notes:
+
+- if the `last_update_block_height` is `null`, then no recent updates were made. The last update block height change was
+  enabled around block `115000000`.
+- the `balance` will be returned as a decimal integer string, e.g. `"100"`.
+- the `balance` is not adjusted to the decimals in the FT metadata, it's the raw balance as stored in the contract.
+- if the `balance` is `null`, then the balance is not available yet. It's likely will be updated soon (within a few
+  seconds).
+- if the `balance` is empty string (`""`), then the account fungible token contract might be broken, because it didn't
+  return the proper balance.
 
 ```
 GET /v1/account/{account_id}/ft
 ```
 
-Example: https://api.fastnear.com/v1/account/here.near/ft
+Example: https://api.fastnear.com/v1/account/here.tg/ft
 
 ```bash
-curl https://api.fastnear.com/v1/account/here.near/ft
+curl https://api.fastnear.com/v1/account/here.tg/ft
 ```
 
 Result:
@@ -91,10 +105,12 @@ Result:
   "account_id": "here.tg",
   "tokens": [
     {
+      "balance": "10000",
       "contract_id": "game.hot.tg",
-      "last_update_block_height": 115041262
+      "last_update_block_height": 115615375
     },
     {
+      "balance": "81000",
       "contract_id": "usdt.tether-token.near",
       "last_update_block_height": null
     }

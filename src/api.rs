@@ -73,14 +73,14 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let public_key = public_key.to_string();
 
-        let account_ids = database::query_with_prefix(connection, "pk", &public_key).await?;
+        let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
         Ok(web::Json(json!({
             "public_key": public_key,
@@ -102,14 +102,14 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let public_key = public_key.to_string();
 
-        let account_ids = database::query_with_prefix(connection, "pk", &public_key).await?;
+        let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
         Ok(web::Json(json!({
             "public_key": public_key,
@@ -128,13 +128,13 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let query_result =
-            database::query_with_prefix(connection, "st", &account_id.to_string()).await?;
+            database::query_with_prefix(&mut connection, "st", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -153,13 +153,13 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let query_result =
-            database::query_with_prefix(connection, "ft", &account_id.to_string()).await?;
+            database::query_with_prefix(&mut connection, "ft", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -178,13 +178,13 @@ pub mod v0 {
 
         tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let query_result =
-            database::query_with_prefix(connection, "nf", &account_id.to_string()).await?;
+            database::query_with_prefix(&mut connection, "nf", &account_id.to_string()).await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -207,14 +207,15 @@ pub mod exp {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let account_id = account_id.to_string();
 
-        let token_ids = database::query_with_prefix_parse(connection, "ft", &account_id).await?;
+        let token_ids =
+            database::query_with_prefix_parse(&mut connection, "ft", &account_id).await?;
 
         let token_balances: HashMap<String, Option<String>> =
             rpc::get_ft_balances(&account_id, &token_ids).await?;
@@ -240,13 +241,14 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up validators for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let query_result =
-            database::query_with_prefix_parse(connection, "st", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(&mut connection, "st", &account_id.to_string())
+                .await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
@@ -268,19 +270,32 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
+        let account_id = account_id.to_string();
+
         let query_result =
-            database::query_with_prefix_parse(connection, "ft", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(&mut connection, "ft", &account_id).await?;
+        let balances = database::query_balances(
+            &mut connection,
+            &account_id,
+            query_result
+                .iter()
+                .map(|(token_id, _)| token_id.as_str())
+                .collect::<Vec<_>>()
+                .as_slice(),
+        )
+        .await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,
-            "tokens": query_result.into_iter().map(|(contract_id, last_update_block_height)| json!({
+            "tokens": query_result.into_iter().zip(balances.into_iter()).map(|((contract_id, last_update_block_height), balance)| json!({
                 "contract_id": contract_id,
                 "last_update_block_height": last_update_block_height,
+                "balance": balance,
             })).collect::<Vec<_>>()
         })))
     }
@@ -296,13 +311,14 @@ pub mod v1 {
 
         tracing::debug!(target: TARGET_API, "Looking up non-fungible tokens for account_id: {}", account_id);
 
-        let connection = app_state
+        let mut connection = app_state
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
 
         let query_result =
-            database::query_with_prefix_parse(connection, "nf", &account_id.to_string()).await?;
+            database::query_with_prefix_parse(&mut connection, "nf", &account_id.to_string())
+                .await?;
 
         Ok(web::Json(json!({
             "account_id": account_id,

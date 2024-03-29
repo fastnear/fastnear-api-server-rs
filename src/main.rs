@@ -64,7 +64,8 @@ async fn main() -> std::io::Result<()> {
         let api_v1 = web::scope("/v1")
             .service(api::v1::staking)
             .service(api::v1::ft)
-            .service(api::v1::nft);
+            .service(api::v1::nft)
+            .service(api::v1::ft_top);
 
         App::new()
             .app_data(web::Data::new(AppState {

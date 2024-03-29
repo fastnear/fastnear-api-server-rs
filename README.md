@@ -14,11 +14,72 @@ APIs:
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
+5. Token ID to top 100 accounts by balance (for FT contracts).
 
 ## API V1
 
 In API V1, the API endpoints provide extra details about the contracts.
-E.g. the block height when the last change was made on a contract that affected a given account.
+E.g. the block height when the last change was made on a contract that affected a given account, or a token balance.
+
+#### Token ID to top 100 accounts by balance (for FT contracts).
+
+Returns the list of account IDs for a given fungible tokens (FT) contract ordered by decreasing FT balance.
+Each account result includes the following:
+
+- `account_id` - the account ID.
+- `balance` - the last known balance of the account for this token.
+
+Notes:
+
+- the `balance` will be returned as a decimal integer string, e.g. `"100"`.
+
+```
+GET /v1/ft/{token_id}/top
+```
+
+Example: https://api.fastnear.com/v1/ft/first.tkn.near/top
+
+```bash
+curl https://api.fastnear.com/v1/ft/first.tkn.near/top
+```
+
+Result:
+
+```json
+{
+  "token_id": "first.tkn.near",
+  "accounts": [
+    {
+      "account_id": "mob.near",
+      "balance": "979894691374420631019486155"
+    },
+    {
+      "account_id": "lucky-bastard.near",
+      "balance": "10319841074196024761995069"
+    },
+    {
+      "account_id": "mattlock.near",
+      "balance": "9775084808910328058513245"
+    },
+    {
+      "account_id": "ref-finance.near",
+      "balance": "10290906529190035816723"
+    },
+    {
+      "account_id": "zilulagg.near",
+      "balance": "91835943826124178808"
+    },
+    {
+      "account_id": "kotleta.near",
+      "balance": "10000"
+    },
+    {
+      "account_id": "ryanmehta.near",
+      "balance": "0"
+    }
+  ]
+}
+```
 
 #### Account ID to delegated staking pools (validators).
 

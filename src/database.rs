@@ -45,15 +45,42 @@ pub(crate) async fn query_with_prefix_parse(
     Ok(res.into_iter().map(|(k, v)| (k, v.parse().ok())).collect())
 }
 
+pub(crate) async fn query_zset_by_score(
+    connection: &mut redis::aio::MultiplexedConnection,
+    key: &str,
+    limit: usize,
+) -> Result<Vec<String>, DatabaseError> {
+    let start = std::time::Instant::now();
+
+    let res: redis::RedisResult<Vec<String>> = redis::cmd("ZRANGE")
+        .arg(key)
+        .arg("inf")
+        .arg(0)
+        .arg("BYSCORE")
+        .arg("REV")
+        .arg("LIMIT")
+        .arg(0)
+        .arg(limit)
+        .query_async(connection)
+        .await;
+
+    let duration = start.elapsed().as_millis();
+
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_zset {}",
+        duration,
+        key);
+
+    Ok(res?)
+}
+
 pub(crate) async fn query_balances(
     connection: &mut redis::aio::MultiplexedConnection,
-    account_id: &str,
-    token_ids: &[&str],
+    pairs: &[(&str, &str)],
 ) -> Result<Vec<Option<String>>, DatabaseError> {
     let start = std::time::Instant::now();
 
     let mut pipe = redis::pipe();
-    for token_id in token_ids {
+    for (token_id, account_id) in pairs {
         pipe.cmd("HGET")
             .arg(format!("b:{}", token_id))
             .arg(account_id);
@@ -63,10 +90,9 @@ pub(crate) async fn query_balances(
 
     let duration = start.elapsed().as_millis();
 
-    tracing::debug!(target: TARGET_DB, "Query {}ms: query_balances {} and {} tokens",
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_balances {} pairs",
         duration,
-        account_id,
-        token_ids.len()
+        pairs.len()
     );
 
     Ok(res?)

@@ -281,10 +281,9 @@ pub mod v1 {
             database::query_with_prefix_parse(&mut connection, "ft", &account_id).await?;
         let balances = database::query_balances(
             &mut connection,
-            &account_id,
             query_result
                 .iter()
-                .map(|(token_id, _)| token_id.as_str())
+                .map(|(token_id, _)| (token_id.as_str(), account_id.as_str()))
                 .collect::<Vec<_>>()
                 .as_slice(),
         )
@@ -325,6 +324,66 @@ pub mod v1 {
             "tokens": query_result.into_iter().map(|(contract_id, last_update_block_height)| json!({
                 "contract_id": contract_id,
                 "last_update_block_height": last_update_block_height,
+            })).collect::<Vec<_>>()
+        })))
+    }
+
+    #[get("/ft/{token_id}/top")]
+    pub async fn ft_top(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let token_id =
+            AccountId::try_from(request.match_info().get("token_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Retriving top holders for token: {}", token_id);
+
+        let mut connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
+
+        let token_id = token_id.to_string();
+
+        let query_result =
+            database::query_zset_by_score(&mut connection, &format!("tb:{}", token_id), 100)
+                .await?;
+        let balances = database::query_balances(
+            &mut connection,
+            query_result
+                .iter()
+                .map(|account_id| (token_id.as_str(), account_id.as_str()))
+                .collect::<Vec<_>>()
+                .as_slice(),
+        )
+        .await?;
+
+        let mut top_holders = query_result
+            .into_iter()
+            .zip(balances.into_iter())
+            .collect::<Vec<_>>();
+
+        top_holders.sort_unstable_by(|a, b| {
+            (
+                b.1.as_ref()
+                    .and_then(|b| b.parse::<u128>().ok())
+                    .unwrap_or(0),
+                &b.0,
+            )
+                .cmp(&(
+                    a.1.as_ref()
+                        .and_then(|b| b.parse::<u128>().ok())
+                        .unwrap_or(0),
+                    &a.0,
+                ))
+        });
+
+        Ok(web::Json(json!({
+            "token_id": token_id,
+            "accounts": top_holders.iter().map(|(account_id, balance)| json!({
+                "account_id": account_id,
+                "balance": balance,
             })).collect::<Vec<_>>()
         })))
     }

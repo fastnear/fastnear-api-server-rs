@@ -97,3 +97,25 @@ pub(crate) async fn query_balances(
 
     Ok(res?)
 }
+
+pub(crate) async fn query_hget(
+    connection: &mut redis::aio::MultiplexedConnection,
+    key: &str,
+    field: &str,
+) -> Result<Option<String>, DatabaseError> {
+    let start = std::time::Instant::now();
+
+    let res: redis::RedisResult<Option<String>> = redis::cmd("HGET")
+        .arg(key)
+        .arg(field)
+        .query_async(connection)
+        .await;
+
+    let duration = start.elapsed().as_millis();
+
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_hget {} {}",
+        duration,
+        key, field);
+
+    Ok(res?)
+}

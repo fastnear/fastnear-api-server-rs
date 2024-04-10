@@ -225,6 +225,124 @@ pub mod exp {
             "tokens": token_balances,
         })))
     }
+
+    #[get("/ft/{token_id}/all")]
+    pub async fn ft_all(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let token_id =
+            AccountId::try_from(request.match_info().get("token_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Retrieving all holders for token: {}", token_id);
+
+        let mut connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
+
+        let token_id = token_id.to_string();
+
+        let tokens_with_balances =
+            database::query_with_prefix(&mut connection, "b", &token_id).await?;
+
+        Ok(web::Json(json!({
+            "token_id": token_id,
+            "accounts": tokens_with_balances.into_iter().map(|(account_id, balance)| json!({
+                "account_id": account_id,
+                "balance": balance,
+            })).collect::<Vec<_>>()
+        })))
+    }
+
+    #[get("/account/{account_id}/full")]
+    pub async fn account_full(
+        request: HttpRequest,
+        app_state: web::Data<AppState>,
+    ) -> Result<impl Responder, ServiceError> {
+        let account_id =
+            AccountId::try_from(request.match_info().get("account_id").unwrap().to_string())
+                .map_err(|_| ServiceError::ArgumentError)?;
+
+        tracing::debug!(target: TARGET_API, "Looking full data for account_id: {}", account_id);
+
+        let mut connection = app_state
+            .redis_client
+            .get_multiplexed_async_connection()
+            .await?;
+
+        let account_id = account_id.to_string();
+
+        let query_result =
+            database::query_with_prefix_parse(&mut connection, "st", &account_id.to_string())
+                .await?;
+
+        let pools = query_result
+            .into_iter()
+            .map(|(pool_id, last_update_block_height)| {
+                json!({
+                    "pool_id": pool_id,
+                    "last_update_block_height": last_update_block_height,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let query_result =
+            database::query_with_prefix_parse(&mut connection, "ft", &account_id).await?;
+        let balances = database::query_balances(
+            &mut connection,
+            query_result
+                .iter()
+                .map(|(token_id, _)| (token_id.as_str(), account_id.as_str()))
+                .collect::<Vec<_>>()
+                .as_slice(),
+        )
+        .await?;
+        let tokens = query_result
+            .into_iter()
+            .zip(balances.into_iter())
+            .map(|((contract_id, last_update_block_height), balance)| {
+                json!({
+                    "contract_id": contract_id,
+                    "last_update_block_height": last_update_block_height,
+                    "balance": balance,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let query_result =
+            database::query_with_prefix_parse(&mut connection, "nf", &account_id.to_string())
+                .await?;
+
+        let nfts = query_result
+            .into_iter()
+            .map(|(contract_id, last_update_block_height)| {
+                json!({
+                    "contract_id": contract_id,
+                    "last_update_block_height": last_update_block_height,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let state = database::query_hget(&mut connection, "accounts", &account_id)
+            .await?
+            .and_then(|state| {
+                if state.is_empty() {
+                    None
+                } else {
+                    serde_json::from_str::<serde_json::Value>(&state).ok()
+                }
+            });
+
+        Ok(web::Json(json!({
+            "account_id": account_id,
+            "pools": pools,
+            "tokens": tokens,
+            "nfts": nfts,
+            "state": state,
+        })))
+    }
 }
 
 pub mod v1 {
@@ -337,7 +455,7 @@ pub mod v1 {
             AccountId::try_from(request.match_info().get("token_id").unwrap().to_string())
                 .map_err(|_| ServiceError::ArgumentError)?;
 
-        tracing::debug!(target: TARGET_API, "Retriving top holders for token: {}", token_id);
+        tracing::debug!(target: TARGET_API, "Retrieving top holders for token: {}", token_id);
 
         let mut connection = app_state
             .redis_client

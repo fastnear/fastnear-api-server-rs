@@ -57,8 +57,11 @@ async fn main() -> std::io::Result<()> {
 
         let mut api_exp = web::scope("/exp");
 
-        if env::var("ENABLE_EXPERIMENTAL").ok() == Some("true".to_string()) {
-            api_exp = api_exp.service(api::exp::ft_with_balances);
+        if env::var("EXPERIMENTAL_API").ok() == Some("true".to_string()) {
+            api_exp = api_exp
+                .service(api::exp::ft_with_balances)
+                .service(api::exp::ft_all)
+                .service(api::exp::account_full);
         }
 
         let api_v1 = web::scope("/v1")

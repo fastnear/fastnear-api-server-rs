@@ -119,3 +119,21 @@ pub(crate) async fn query_hget(
 
     Ok(res?)
 }
+
+pub(crate) async fn query_get(
+    connection: &mut redis::aio::MultiplexedConnection,
+    key: &str,
+) -> Result<Option<String>, DatabaseError> {
+    let start = std::time::Instant::now();
+
+    let res: redis::RedisResult<Option<String>> =
+        redis::cmd("GET").arg(key).query_async(connection).await;
+
+    let duration = start.elapsed().as_millis();
+
+    tracing::debug!(target: TARGET_DB, "Query {}ms: query_get {}",
+        duration,
+        key);
+
+    Ok(res?)
+}

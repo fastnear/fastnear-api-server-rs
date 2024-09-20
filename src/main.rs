@@ -60,15 +60,17 @@ async fn main() -> std::io::Result<()> {
         if env::var("EXPERIMENTAL_API").ok() == Some("true".to_string()) {
             api_exp = api_exp
                 .service(api::exp::ft_with_balances)
-                .service(api::exp::ft_all)
-                .service(api::exp::account_full);
+                .service(api::exp::ft_all);
         }
 
         let api_v1 = web::scope("/v1")
+            .service(api::v0::lookup_by_public_key)
+            .service(api::v0::lookup_by_public_key_all)
             .service(api::v1::staking)
             .service(api::v1::ft)
             .service(api::v1::nft)
-            .service(api::v1::ft_top);
+            .service(api::v1::ft_top)
+            .service(api::v1::account_full);
 
         App::new()
             .app_data(web::Data::new(AppState {
@@ -82,6 +84,7 @@ async fn main() -> std::io::Result<()> {
             .service(api_v0)
             .service(api_exp)
             .service(api_v1)
+            .service(api::status)
             .route("/", web::get().to(greet))
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?

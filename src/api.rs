@@ -619,6 +619,7 @@ pub async fn status(app_state: web::Data<AppState>) -> Result<impl Responder, Se
         database::query_get(&mut connection, "meta:latest_balance_block").await?;
 
     Ok(web::Json(json!({
+        "version": env!("CARGO_PKG_VERSION"),
         "latest_sync_block": latest_sync_block,
         "latest_balance_block": latest_balance_block,
     })))

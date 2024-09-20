@@ -15,6 +15,31 @@ APIs:
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
 5. Token ID to top 100 accounts by balance (for FT contracts).
+6. Account ID to full info (validators, FT, NFT and account state).
+
+## Status
+
+You can check status of the API server.
+
+```
+GET /status
+```
+
+https://api.fastnear.com/status
+
+```bash
+curl https://api.fastnear.com/status
+```
+
+Example Result:
+
+```json
+{
+  "latest_balance_block": "128503383",
+  "latest_sync_block": "128503383",
+  "version": "0.9.0"
+}
+```
 
 ## API V1
 
@@ -289,6 +314,99 @@ Result:
     {
       "contract_id": "claim.sharddog.near",
       "last_update_block_height": 115039779
+    }
+  ]
+}
+```
+
+#### Account ID to full info (validators, FT, NFT and account state)
+
+Returns the full information about the account, including the following:
+
+- Delegated staking pools (validators).
+- Fungible tokens (FT) contracts and balances.
+- Non-fungible tokens (NFT) contracts.
+- Account state (balance, locked balance, storage usage).
+
+```
+GET /v1/account/{account_id}/full
+```
+
+Example: https://api.fastnear.com/v1/account/here.tg/full
+
+```bash
+curl https://api.fastnear.com/v1/account/here.tg/full
+```
+
+Result:
+
+```json
+{
+  "account_id": "here.tg",
+  "nfts": [
+    {
+      "contract_id": "harvestmoon.sharddog.near",
+      "last_update_block_height": null
+    },
+    {
+      "contract_id": "nft.hot.tg",
+      "last_update_block_height": 115282010
+    },
+    {
+      "contract_id": "nearvoucherstore.mintbase1.near",
+      "last_update_block_height": 118841842
+    },
+    {
+      "contract_id": "nearreward.mintbase1.near",
+      "last_update_block_height": 121969370
+    }
+  ],
+  "pools": [
+    {
+      "last_update_block_height": null,
+      "pool_id": "here.poolv1.near"
+    }
+  ],
+  "state": {
+    "balance": "240420562203528059226991880",
+    "locked": "0",
+    "storage_bytes": 26340
+  },
+  "tokens": [
+    {
+      "balance": "9990",
+      "contract_id": "game.hot.tg",
+      "last_update_block_height": 123971814
+    },
+    {
+      "balance": "10283000",
+      "contract_id": "usdt.tether-token.near",
+      "last_update_block_height": 116301157
+    },
+    {
+      "balance": "0",
+      "contract_id": "aurora",
+      "last_update_block_height": 118627759
+    },
+    {
+      "balance": "2318000000000000",
+      "contract_id": "c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.factory.bridge.near",
+      "last_update_block_height": 118667336
+    },
+    {
+      "balance": "10000000000000000000",
+      "contract_id": "nearrewards.near",
+      "last_update_block_height": 118842567
+    },
+    {
+      "balance": "8999999999899999",
+      "contract_id": "wbnb.hot.tg",
+      "last_update_block_height": 121310030
+    },
+    {
+      "balance": "",
+      "contract_id": "v1.omni.hot.tg",
+      "last_update_block_height": 128025061
     }
   ]
 }

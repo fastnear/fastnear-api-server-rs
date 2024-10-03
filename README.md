@@ -6,16 +6,21 @@ The low-latency API for wallets and explorers.
 
 APIs:
 
-1. Public Key to Account ID mapping.
+1. Public Key to Account ID(s) mapping.
 
-- Full Access Public Key to Account ID mapping.
-- Any Public Key to Account ID mapping.
+- Full Access Public Key to Account ID(s) mapping.
+- Any Public Key to Account ID(s) mapping.
 
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
 4. Account ID to non-fungible tokens (NFT contracts).
 5. Token ID to top 100 accounts by balance (for FT contracts).
 6. Account ID to full info (validators, FT, NFT and account state).
+
+Endpoints:
+
+- Mainnet: https://api.fastnear.com
+- Testnet: https://test.api.fastnear.com
 
 ## Status
 

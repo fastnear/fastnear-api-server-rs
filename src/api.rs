@@ -12,7 +12,7 @@ const TARGET_API: &str = "api";
 pub type BlockHeight = u64;
 
 #[derive(Debug)]
-enum ServiceError {
+pub enum ServiceError {
     DatabaseError(database::DatabaseError),
     RpcError(rpc::RpcError),
     ArgumentError,
@@ -514,33 +514,4 @@ pub mod v1 {
             })),
         })))
     }
-}
-
-#[get("/status")]
-pub async fn status(app_state: web::Data<AppState>) -> Result<impl Responder, ServiceError> {
-    let mut connection = app_state
-        .redis_client
-        .get_multiplexed_async_connection()
-        .await?;
-
-    let latest_sync_block = database::query_get(&mut connection, "meta:latest_block").await?;
-    let latest_block_time = database::query_get(&mut connection, "meta:latest_block_time").await?;
-    let latest_balance_block =
-        database::query_get(&mut connection, "meta:latest_balance_block").await?;
-
-    let sync_latency_sec = latest_block_time.as_ref().map(|t| {
-        let t_nano = t.parse::<u128>().unwrap_or(0);
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default();
-        now.as_nanos().saturating_sub(t_nano) as f64 / 1e9
-    });
-
-    Ok(web::Json(json!({
-        "version": env!("CARGO_PKG_VERSION"),
-        "latest_sync_block": latest_sync_block,
-        "sync_latency_sec": sync_latency_sec,
-        "latest_block_time": latest_block_time,
-        "latest_balance_block": latest_balance_block,
-    })))
 }

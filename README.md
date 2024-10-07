@@ -40,9 +40,33 @@ Example Result:
 
 ```json
 {
-  "latest_balance_block": "128503383",
-  "latest_sync_block": "128503383",
-  "version": "0.9.0"
+  "sync_balance_block_height": 129734103,
+  "sync_block_height": 129734103,
+  "sync_block_timestamp_nanosec": "1728256282197171397",
+  "sync_latency_sec": 4.671730603,
+  "version": "0.10.0"
+}
+```
+
+## Health
+
+Returns the health status of the API server.
+
+```
+GET /health
+```
+
+https://api.fastnear.com/health
+
+```bash
+curl https://api.fastnear.com/health
+```
+
+Example Result (for healthy):
+
+```json
+{
+  "status": "ok"
 }
 ```
 

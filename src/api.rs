@@ -12,7 +12,7 @@ const TARGET_API: &str = "api";
 pub type BlockHeight = u64;
 
 #[derive(Debug)]
-enum ServiceError {
+pub enum ServiceError {
     DatabaseError(database::DatabaseError),
     RpcError(rpc::RpcError),
     ArgumentError,
@@ -514,22 +514,4 @@ pub mod v1 {
             })),
         })))
     }
-}
-
-#[get("/status")]
-pub async fn status(app_state: web::Data<AppState>) -> Result<impl Responder, ServiceError> {
-    let mut connection = app_state
-        .redis_client
-        .get_multiplexed_async_connection()
-        .await?;
-
-    let latest_sync_block = database::query_get(&mut connection, "meta:latest_block").await?;
-    let latest_balance_block =
-        database::query_get(&mut connection, "meta:latest_balance_block").await?;
-
-    Ok(web::Json(json!({
-        "version": env!("CARGO_PKG_VERSION"),
-        "latest_sync_block": latest_sync_block,
-        "latest_balance_block": latest_balance_block,
-    })))
 }

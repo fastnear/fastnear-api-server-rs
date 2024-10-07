@@ -2,6 +2,7 @@ mod api;
 mod database;
 mod redis_db;
 mod rpc;
+mod status;
 
 use dotenv::dotenv;
 use std::env;
@@ -12,8 +13,15 @@ use actix_web::{get, middleware, web, App, HttpRequest, HttpResponse, HttpServer
 use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
+pub struct Config {
+    pub max_healthy_latency_sec: f64,
+    pub max_healthy_sync_block_diff: u64,
+}
+
+#[derive(Clone)]
 pub struct AppState {
     pub redis_client: redis::Client,
+    pub config: Config,
 }
 
 async fn greet() -> impl Responder {
@@ -34,6 +42,21 @@ async fn main() -> std::io::Result<()> {
     let redis_client =
         redis::Client::open(env::var("REDIS_URL").expect("Missing REDIS_URL env var"))
             .expect("Failed to connect to Redis");
+
+    let config = Config {
+        max_healthy_latency_sec: env::var("MAX_HEALTHY_SYNC_LATENCY_SEC")
+            .map(|s| {
+                s.parse()
+                    .expect("Failed to parse MAX_HEALTHY_SYNC_LATENCY_SEC")
+            })
+            .unwrap_or(10.0),
+        max_healthy_sync_block_diff: env::var("MAX_HEALTHY_SYNC_BLOCK_DIFF")
+            .map(|s| {
+                s.parse()
+                    .expect("Failed to parse MAX_HEALTHY_SYNC_BLOCK_DIFF")
+            })
+            .unwrap_or(3),
+    };
 
     HttpServer::new(move || {
         // Configure CORS middleware
@@ -75,6 +98,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(AppState {
                 redis_client: redis_client.clone(),
+                config: config.clone(),
             }))
             .wrap(cors)
             .wrap(middleware::Logger::new(
@@ -84,7 +108,8 @@ async fn main() -> std::io::Result<()> {
             .service(api_v0)
             .service(api_exp)
             .service(api_v1)
-            .service(api::status)
+            .service(status::status)
+            .service(status::health)
             .route("/", web::get().to(greet))
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?

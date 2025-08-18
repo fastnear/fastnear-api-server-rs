@@ -1,6 +1,6 @@
 [package]
-name = "data-server"
-version = "0.10.0"
+name = "fastnear-api-server-rs"
+version = "0.10.1"
 edition = "2021"
 
 [[bin]]

@@ -18,6 +18,21 @@ pub enum ServiceError {
     ArgumentError,
 }
 
+#[derive(Debug)]
+pub enum HealthError {
+    HighSyncLatency {
+        latency: f64,
+        max_latency: f64,
+    },
+    MissingSyncLatency,
+    MissingSyncBlockHeight,
+    MissingSyncBalanceBlockHeight,
+    HighSyncBlockDiff {
+        sync_difference: u64,
+        max_sync_difference: u64,
+    },
+}
+
 impl From<redis::RedisError> for ServiceError {
     fn from(error: redis::RedisError) -> Self {
         ServiceError::DatabaseError(database::DatabaseError::RedisError(error))

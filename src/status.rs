@@ -1,3 +1,4 @@
+use crate::api::HealthError;
 use crate::*;
 use actix_web::{get, web, Responder};
 use serde_json::json;
@@ -32,18 +33,30 @@ async fn internal_status(
     }))
 }
 
-fn is_healthy(v: serde_json::Value, config: &Config) -> Option<()> {
-    let latency = v["sync_latency_sec"].as_f64()?;
+fn is_healthy(v: serde_json::Value, config: &Config) -> Result<(), HealthError> {
+    let latency = v["sync_latency_sec"]
+        .as_f64()
+        .ok_or(HealthError::MissingSyncLatency)?;
     if latency > config.max_healthy_latency_sec {
-        return None;
+        return Err(HealthError::HighSyncLatency {
+            latency,
+            max_latency: config.max_healthy_latency_sec,
+        });
     }
-    let latest_sync_block = v["sync_block_height"].as_u64()?;
-    let latest_balance_block = v["sync_balance_block_height"].as_u64()?;
-    if latest_sync_block.saturating_sub(latest_balance_block) > config.max_healthy_sync_block_diff {
-        None
-    } else {
-        Some(())
+    let latest_sync_block = v["sync_block_height"]
+        .as_u64()
+        .ok_or(HealthError::MissingSyncBlockHeight)?;
+    let latest_balance_block = v["sync_balance_block_height"]
+        .as_u64()
+        .ok_or(HealthError::MissingSyncBalanceBlockHeight)?;
+    let sync_difference = latest_sync_block.saturating_sub(latest_balance_block);
+    if sync_difference > config.max_healthy_sync_block_diff {
+        return Err(HealthError::HighSyncBlockDiff {
+            sync_difference,
+            max_sync_difference: config.max_healthy_sync_block_diff,
+        });
     }
+    Ok(())
 }
 
 #[get("/status")]
@@ -57,6 +70,6 @@ pub async fn status(
 pub async fn health(app_state: web::Data<AppState>) -> Result<impl Responder, api::ServiceError> {
     let res = internal_status(&app_state).await?;
     Ok(web::Json(
-        json!({"status": is_healthy(res, &app_state.config).map(|_| "ok").unwrap_or("unhealthy")}),
+        json!({"status": is_healthy(res, &app_state.config).map(|_| "ok".to_string()).unwrap_or_else(|e| format!("{:?}", e))}),
     ))
 }

@@ -24,8 +24,20 @@ pub struct AppState {
     pub config: Config,
 }
 
-async fn greet() -> impl Responder {
-    HttpResponse::Ok().body("Hello, Actix Web!")
+const INDEX_HTML: &str = include_str!("../index.html");
+
+async fn index_html() -> impl Responder {
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(INDEX_HTML)
+}
+
+const SKILL_MD: &str = include_str!("../skill.md");
+
+async fn skill_md() -> impl Responder {
+    HttpResponse::Ok()
+        .content_type("text/markdown; charset=utf-8")
+        .body(SKILL_MD)
 }
 
 #[actix_web::main]
@@ -110,7 +122,9 @@ async fn main() -> std::io::Result<()> {
             .service(api_v1)
             .service(status::status)
             .service(status::health)
-            .route("/", web::get().to(greet))
+            .route("/index.html", web::get().to(index_html))
+            .route("/skill.md", web::get().to(skill_md))
+            .route("/", web::get().to(index_html))
     })
     .bind(format!("127.0.0.1:{}", env::var("PORT").unwrap()))?
     .run()

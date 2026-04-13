@@ -513,8 +513,6 @@
 
     <p>Returns the list of account IDs that are associated with the full-access public key.</p>
 
-    <p>Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.</p>
-
     <pre><code>GET /v0/public_key/{public_key}</code></pre>
 
     <p>Example: <a href="https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3">https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3</a></p>
@@ -534,8 +532,6 @@
     <h4>Any Public Key to Account ID mapping.</h4>
 
     <p>Returns the list of account IDs that are associated with this public key, including limited access keys.</p>
-
-    <p>Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.</p>
 
     <pre><code>GET /v0/public_key/{public_key}/all</code></pre>
 

@@ -22,6 +22,19 @@ Endpoints:
 - Mainnet: https://api.fastnear.com
 - Testnet: https://test.api.fastnear.com
 
+## OpenAPI Generation
+
+The checked-in `openapi/openapi.yaml` file is generated from typed Rust DTOs and a Rust operation registry.
+
+```bash
+cargo run --features openapi --bin generate-openapi
+cargo run --features openapi --bin generate-openapi -- --check
+```
+
+The docs pipeline is:
+
+`fastnear-api-server-rs` generator -> checked-in `openapi/openapi.yaml` -> `mike-docs` split + sync -> `builder-docs` direct docs runtime
+
 ## Status
 
 You can check status of the API server.
@@ -447,8 +460,6 @@ Result:
 
 Returns the list of account IDs that are associated with the full-access public key.
 
-Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.
-
 ```
 GET /v0/public_key/{public_key}
 ```
@@ -474,8 +485,6 @@ Result:
 #### Any Public Key to Account ID mapping.
 
 Returns the list of account IDs that are associated with this public key, including limited access keys.
-
-Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.
 
 ```
 GET /v0/public_key/{public_key}/all

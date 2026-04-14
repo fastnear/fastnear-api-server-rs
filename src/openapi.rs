@@ -80,12 +80,12 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             with_api_key(vec![path_parameter(
                 "public_key",
                 "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
-                json!("ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"),
+                json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
             "Matching account IDs for the supplied full-access public key",
             Some(json!({
-                "public_key": "ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3",
-                "account_ids": ["example.near"]
+                "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
+                "account_ids": ["root.near"]
             })),
             true,
         ),
@@ -101,12 +101,12 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             with_api_key(vec![path_parameter(
                 "public_key",
                 "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
-                json!("ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"),
+                json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
             "Matching account IDs for the supplied public key, including limited-access keys",
             Some(json!({
-                "public_key": "ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd",
-                "account_ids": ["example.near", "limited.near"]
+                "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
+                "account_ids": ["root.near"]
             })),
             true,
         ),
@@ -185,12 +185,12 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             with_api_key(vec![path_parameter(
                 "public_key",
                 "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
-                json!("ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"),
+                json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
             "Matching account IDs for the supplied full-access public key",
             Some(json!({
-                "public_key": "ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3",
-                "account_ids": ["example.near"]
+                "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
+                "account_ids": ["root.near"]
             })),
             true,
         ),
@@ -206,12 +206,12 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             with_api_key(vec![path_parameter(
                 "public_key",
                 "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
-                json!("ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"),
+                json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
             "Matching account IDs for the supplied public key, including limited-access keys",
             Some(json!({
-                "public_key": "ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd",
-                "account_ids": ["example.near", "limited.near"]
+                "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
+                "account_ids": ["root.near"]
             })),
             true,
         ),

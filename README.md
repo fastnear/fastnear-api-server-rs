@@ -464,10 +464,10 @@ Returns the list of account IDs that are associated with the full-access public 
 GET /v0/public_key/{public_key}
 ```
 
-Example: https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+Example: https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
 
 ```bash
-curl https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
 ```
 
 Result:
@@ -475,10 +475,9 @@ Result:
 ```json
 {
   "account_ids": [
-    "root.near",
-    "d9af67ff794a93e05bdba5c25ad7af027d72b3b76823051c0fb4b6e3e79ac51e"
+    "root.near"
   ],
-  "public_key": "ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }
 ```
 
@@ -490,10 +489,10 @@ Returns the list of account IDs that are associated with this public key, includ
 GET /v0/public_key/{public_key}/all
 ```
 
-Example: https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+Example: https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all
 
 ```bash
-curl https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all
 ```
 
 Result:
@@ -501,10 +500,9 @@ Result:
 ```json
 {
   "account_ids": [
-    "root.near",
-    "f2c160840040d637041a5dc63eeb23b8aae41a79fc9b0f2d8df07adb613d1d82"
+    "root.near"
   ],
-  "public_key": "ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }
 ```
 

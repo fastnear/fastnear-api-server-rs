@@ -451,7 +451,7 @@ paths:
       operationId: lookup_by_public_key_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
-        example: ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
         required: true
@@ -469,8 +469,8 @@ paths:
             application/json:
               example:
                 account_ids:
-                - example.near
-                public_key: ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
           description: Matching account IDs for the supplied full-access public key
@@ -497,7 +497,7 @@ paths:
       operationId: lookup_by_public_key_all_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
-        example: ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
         required: true
@@ -515,9 +515,8 @@ paths:
             application/json:
               example:
                 account_ids:
-                - example.near
-                - limited.near
-                public_key: ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
           description: Matching account IDs for the supplied public key, including limited-access keys
@@ -784,7 +783,7 @@ paths:
       operationId: lookup_by_public_key_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
-        example: ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
         required: true
@@ -802,8 +801,8 @@ paths:
             application/json:
               example:
                 account_ids:
-                - example.near
-                public_key: ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
           description: Matching account IDs for the supplied full-access public key
@@ -830,7 +829,7 @@ paths:
       operationId: lookup_by_public_key_all_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
-        example: ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
         required: true
@@ -848,9 +847,8 @@ paths:
             application/json:
               example:
                 account_ids:
-                - example.near
-                - limited.near
-                public_key: ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
           description: Matching account IDs for the supplied public key, including limited-access keys

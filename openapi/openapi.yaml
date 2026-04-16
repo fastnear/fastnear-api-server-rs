@@ -447,7 +447,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account Staking
   /v0/public_key/{public_key}:
     get:
-      description: Fetch the indexed account IDs associated with a full-access public key.
+      description: Fetch the account IDs that have registered a full-access public key, via the legacy V0 lookup path.
       operationId: lookup_by_public_key_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -493,7 +493,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Public Key Lookup
   /v0/public_key/{public_key}/all:
     get:
-      description: Fetch every account tied to a public key — full-access and limited-access keys together.
+      description: List every account tied to a public key — full-access and limited-access keys together — via the legacy V0 lookup-all path.
       operationId: lookup_by_public_key_all_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -779,7 +779,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 FT Top Holders
   /v1/public_key/{public_key}:
     get:
-      description: Fetch the indexed account IDs associated with a full-access public key.
+      description: Resolve a full-access public key to the indexed NEAR accounts that have registered it — V1 canonical lookup path.
       operationId: lookup_by_public_key_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -825,7 +825,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Public Key Lookup
   /v1/public_key/{public_key}/all:
     get:
-      description: Fetch every account tied to a public key — full-access and limited-access keys together.
+      description: Resolve a public key to every account that holds it — full-access and limited-access keys alike — via the V1 lookup-all path.
       operationId: lookup_by_public_key_all_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.

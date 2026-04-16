@@ -75,7 +75,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/public_key/{public_key}",
             "lookup_by_public_key_v0",
             "Lookup full-access accounts by public key",
-            "Fetch the indexed account IDs associated with a full-access public key.",
+            "Fetch the account IDs that have registered a full-access public key, via the legacy V0 lookup path.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -96,7 +96,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/public_key/{public_key}/all",
             "lookup_by_public_key_all_v0",
             "Lookup all indexed accounts by public key",
-            "Fetch every account tied to a public key — full-access and limited-access keys together.",
+            "List every account tied to a public key — full-access and limited-access keys together — via the legacy V0 lookup-all path.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -180,7 +180,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}",
             "lookup_by_public_key_v1",
             "Lookup full-access accounts by public key",
-            "Fetch the indexed account IDs associated with a full-access public key.",
+            "Resolve a full-access public key to the indexed NEAR accounts that have registered it — V1 canonical lookup path.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -201,7 +201,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}/all",
             "lookup_by_public_key_all_v1",
             "Lookup all indexed accounts by public key",
-            "Fetch every account tied to a public key — full-access and limited-access keys together.",
+            "Resolve a public key to every account that holds it — full-access and limited-access keys alike — via the V1 lookup-all path.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",

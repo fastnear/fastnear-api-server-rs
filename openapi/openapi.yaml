@@ -242,7 +242,7 @@ openapi: 3.0.3
 paths:
   /health:
     get:
-      description: Use this lightweight probe to confirm the FastNear API is healthy.
+      description: 'Ping the FastNEAR API for liveness — returns `{status: ok}` when healthy.'
       operationId: get_health
       parameters:
       - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
@@ -308,7 +308,7 @@ paths:
       x-fastnear-title: FastNEAR API - Status
   /v0/account/{account_id}/ft:
     get:
-      description: Retrieve the indexed fungible token contract IDs for an account. This v0 route does not return balances.
+      description: Fetch the fungible token contract IDs an account has held — contract IDs only, no balances.
       operationId: account_ft_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -355,7 +355,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account FT
   /v0/account/{account_id}/nft:
     get:
-      description: Fetch the indexed NFT contract IDs associated with an account. This v0 route does not include block-height metadata.
+      description: Fetch the NFT contract IDs an account has held — contract IDs only, no block-height metadata.
       operationId: account_nft_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -401,7 +401,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account NFT
   /v0/account/{account_id}/staking:
     get:
-      description: Fetch the staking pool account IDs FastNear has indexed for one account. This v0 route returns pool IDs only, without block-height metadata.
+      description: Fetch staking pool account IDs for one account — pool IDs only, no block-height metadata.
       operationId: account_staking_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -493,7 +493,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Public Key Lookup
   /v0/public_key/{public_key}/all:
     get:
-      description: Use this variant when one public key may control multiple accounts and you want the full set.
+      description: Fetch every account tied to a public key — full-access and limited-access keys together.
       operationId: lookup_by_public_key_all_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -539,7 +539,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Public Key Lookup (All)
   /v1/account/{account_id}/ft:
     get:
-      description: Fetch the v1 indexed fungible token balance rows for one account.
+      description: Fetch an account's fungible token balance rows, each with contract ID, balance, and last-update block height.
       operationId: account_ft_v1
       parameters:
       - description: NEAR account ID to inspect.
@@ -732,7 +732,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Account Staking
   /v1/ft/{token_id}/top:
     get:
-      description: Use this endpoint to inspect the indexed top holders for a fungible token contract.
+      description: Fetch the top-balance holder list for a fungible token contract, ranked highest balance first.
       operationId: ft_top_v1
       parameters:
       - description: Fungible token contract account ID.
@@ -779,7 +779,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 FT Top Holders
   /v1/public_key/{public_key}:
     get:
-      description: Use the v1 endpoint for the newer namespace. It currently returns the same response shape as the v0 route.
+      description: Fetch the indexed account IDs associated with a full-access public key.
       operationId: lookup_by_public_key_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -825,7 +825,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Public Key Lookup
   /v1/public_key/{public_key}/all:
     get:
-      description: Fetch every indexed account tied to a public key. This v1 route currently uses the same response shape as the v0 route.
+      description: Fetch every account tied to a public key — full-access and limited-access keys together.
       operationId: lookup_by_public_key_all_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.

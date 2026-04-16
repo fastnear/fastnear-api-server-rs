@@ -61,7 +61,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/health",
             "get_health",
             "Get service health",
-            "Use this lightweight probe to confirm the FastNear API is healthy.",
+            "Ping the FastNEAR API for liveness — returns `{status: ok}` when healthy.",
             &["system"],
             vec![api_key_parameter()],
             "Health status string",
@@ -96,7 +96,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/public_key/{public_key}/all",
             "lookup_by_public_key_all_v0",
             "Lookup all indexed accounts by public key",
-            "Use this variant when one public key may control multiple accounts and you want the full set.",
+            "Fetch every account tied to a public key — full-access and limited-access keys together.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -117,7 +117,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/staking",
             "account_staking_v0",
             "Lookup staking pool account IDs for an account",
-            "Fetch the staking pool account IDs FastNear has indexed for one account. This v0 route returns pool IDs only, without block-height metadata.",
+            "Fetch staking pool account IDs for one account — pool IDs only, no block-height metadata.",
             &["staking"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -138,7 +138,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/ft",
             "account_ft_v0",
             "Lookup fungible token contract IDs for an account",
-            "Retrieve the indexed fungible token contract IDs for an account. This v0 route does not return balances.",
+            "Fetch the fungible token contract IDs an account has held — contract IDs only, no balances.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -159,7 +159,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/nft",
             "account_nft_v0",
             "Lookup NFT contract IDs for an account",
-            "Fetch the indexed NFT contract IDs associated with an account. This v0 route does not include block-height metadata.",
+            "Fetch the NFT contract IDs an account has held — contract IDs only, no block-height metadata.",
             &["non-fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -180,7 +180,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}",
             "lookup_by_public_key_v1",
             "Lookup full-access accounts by public key",
-            "Use the v1 endpoint for the newer namespace. It currently returns the same response shape as the v0 route.",
+            "Fetch the indexed account IDs associated with a full-access public key.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -201,7 +201,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}/all",
             "lookup_by_public_key_all_v1",
             "Lookup all indexed accounts by public key",
-            "Fetch every indexed account tied to a public key. This v1 route currently uses the same response shape as the v0 route.",
+            "Fetch every account tied to a public key — full-access and limited-access keys together.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -248,7 +248,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/account/{account_id}/ft",
             "account_ft_v1",
             "Lookup indexed fungible token rows for an account",
-            "Fetch the v1 indexed fungible token balance rows for one account.",
+            "Fetch an account's fungible token balance rows, each with contract ID, balance, and last-update block height.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -301,7 +301,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/ft/{token_id}/top",
             "ft_top_v1",
             "Lookup top indexed holders for a fungible token",
-            "Use this endpoint to inspect the indexed top holders for a fungible token contract.",
+            "Fetch the top-balance holder list for a fungible token contract, ranked highest balance first.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "token_id",
@@ -358,7 +358,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/exp/account/{account_id}/ft_with_balances",
             "exp_ft_with_balances",
             "Resolve fungible token balances for one account",
-            "Returns a token-to-balance map for the requested account. This endpoint is deploy-gated and not part of the default published FastNEAR portal until `EXPERIMENTAL_API=true` is enabled publicly.",
+            "Fetch an account's fungible token holdings as a flat `contract_id → balance` map in one response.",
             &["experimental"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -382,7 +382,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/exp/ft/{token_id}/all",
             "exp_ft_all",
             "Get every indexed holder for a fungible token",
-            "Returns every indexed account FastNEAR has stored for the requested fungible token, without the v1 top-holder limit. This endpoint is deploy-gated and not part of the default published FastNEAR portal until `EXPERIMENTAL_API=true` is enabled publicly.",
+            "Fetch every indexed holder of a fungible token — unbounded list, no top-holder truncation.",
             &["experimental"],
             with_api_key(vec![path_parameter(
                 "token_id",

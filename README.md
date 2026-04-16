@@ -22,6 +22,19 @@ Endpoints:
 - Mainnet: https://api.fastnear.com
 - Testnet: https://test.api.fastnear.com
 
+## OpenAPI Generation
+
+The checked-in `openapi/openapi.yaml` file is generated from typed Rust DTOs and a Rust operation registry.
+
+```bash
+cargo run --features openapi --bin generate-openapi
+cargo run --features openapi --bin generate-openapi -- --check
+```
+
+The docs pipeline is:
+
+`fastnear-api-server-rs` generator -> checked-in `openapi/openapi.yaml` -> `mike-docs` split + sync -> `builder-docs` direct docs runtime
+
 ## Status
 
 You can check status of the API server.
@@ -447,16 +460,14 @@ Result:
 
 Returns the list of account IDs that are associated with the full-access public key.
 
-Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.
-
 ```
 GET /v0/public_key/{public_key}
 ```
 
-Example: https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+Example: https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
 
 ```bash
-curl https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3
+curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
 ```
 
 Result:
@@ -464,10 +475,9 @@ Result:
 ```json
 {
   "account_ids": [
-    "root.near",
-    "d9af67ff794a93e05bdba5c25ad7af027d72b3b76823051c0fb4b6e3e79ac51e"
+    "root.near"
   ],
-  "public_key": "ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }
 ```
 
@@ -475,16 +485,14 @@ Result:
 
 Returns the list of account IDs that are associated with this public key, including limited access keys.
 
-Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.
-
 ```
 GET /v0/public_key/{public_key}/all
 ```
 
-Example: https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+Example: https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all
 
 ```bash
-curl https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all
+curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all
 ```
 
 Result:
@@ -492,10 +500,9 @@ Result:
 ```json
 {
   "account_ids": [
-    "root.near",
-    "f2c160840040d637041a5dc63eeb23b8aae41a79fc9b0f2d8df07adb613d1d82"
+    "root.near"
   ],
-  "public_key": "ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }
 ```
 

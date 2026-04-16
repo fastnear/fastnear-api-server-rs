@@ -513,44 +513,38 @@
 
     <p>Returns the list of account IDs that are associated with the full-access public key.</p>
 
-    <p>Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.</p>
-
     <pre><code>GET /v0/public_key/{public_key}</code></pre>
 
-    <p>Example: <a href="https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3">https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3</a></p>
+    <p>Example: <a href="https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT">https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT</a></p>
 
-    <pre><code class="language-bash">curl https://api.fastnear.com/v0/public_key/ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3</code></pre>
+    <pre><code class="language-bash">curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT</code></pre>
 
     <p>Result:</p>
 
     <pre><code class="language-json">{
   "account_ids": [
-    "root.near",
-    "d9af67ff794a93e05bdba5c25ad7af027d72b3b76823051c0fb4b6e3e79ac51e"
+    "root.near"
   ],
-  "public_key": "ed25519:FekbqN74kXhVPRd8ysAqJwLydFvTPYh7ZXHmhqCETcR3"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }</code></pre>
 
     <h4>Any Public Key to Account ID mapping.</h4>
 
     <p>Returns the list of account IDs that are associated with this public key, including limited access keys.</p>
 
-    <p>Note, the API will also return an implicit account ID for the public key, even if the implicit account might not exist.</p>
-
     <pre><code>GET /v0/public_key/{public_key}/all</code></pre>
 
-    <p>Example: <a href="https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all">https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all</a></p>
+    <p>Example: <a href="https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all">https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all</a></p>
 
-    <pre><code class="language-bash">curl https://api.fastnear.com/v0/public_key/ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd/all</code></pre>
+    <pre><code class="language-bash">curl https://api.fastnear.com/v0/public_key/ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT/all</code></pre>
 
     <p>Result:</p>
 
     <pre><code class="language-json">{
   "account_ids": [
-    "root.near",
-    "f2c160840040d637041a5dc63eeb23b8aae41a79fc9b0f2d8df07adb613d1d82"
+    "root.near"
   ],
-  "public_key": "ed25519:HLcgpHWRn3ij97JfpPNYDScMXVguWSFH1mR58RB7qPpd"
+  "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"
 }</code></pre>
 
     <h4>Account ID to delegated staking pools (validators).</h4>

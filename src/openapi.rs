@@ -41,7 +41,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/status",
             "get_status",
             "Get service sync status",
-            "Returns the latest indexed sync heights, the indexed block timestamp, the measured sync latency, and the deployed FastNEAR API version.",
+            "Check the current indexed block height, latency, and deployed service version.",
             &["system"],
             vec![api_key_parameter()],
             "Current FastNEAR API sync status",
@@ -61,7 +61,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/health",
             "get_health",
             "Get service health",
-            "Returns `ok` when the service is healthy. When FastNEAR is degraded, the same `status` field carries a diagnostic string instead.",
+            "Use this lightweight probe to confirm the FastNear API is healthy.",
             &["system"],
             vec![api_key_parameter()],
             "Health status string",
@@ -75,7 +75,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/public_key/{public_key}",
             "lookup_by_public_key_v0",
             "Lookup full-access accounts by public key",
-            "Returns account IDs currently associated with the provided full-access public key. The response includes account IDs only.",
+            "Fetch the indexed account IDs associated with a full-access public key.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -96,7 +96,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/public_key/{public_key}/all",
             "lookup_by_public_key_all_v0",
             "Lookup all indexed accounts by public key",
-            "Returns account IDs currently associated with the supplied public key, including limited-access keys when they are present in the FastNEAR index.",
+            "Use this variant when one public key may control multiple accounts and you want the full set.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -117,7 +117,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/staking",
             "account_staking_v0",
             "Lookup staking pool account IDs for an account",
-            "Returns staking pool account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include `last_update_block_height` metadata.",
+            "Fetch the staking pool account IDs FastNear has indexed for one account. This v0 route returns pool IDs only, without block-height metadata.",
             &["staking"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -138,7 +138,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/ft",
             "account_ft_v0",
             "Lookup fungible token contract IDs for an account",
-            "Returns only fungible token contract account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include balances or block-height metadata.",
+            "Retrieve the indexed fungible token contract IDs for an account. This v0 route does not return balances.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -159,7 +159,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v0/account/{account_id}/nft",
             "account_nft_v0",
             "Lookup NFT contract IDs for an account",
-            "Returns only NFT contract account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include `last_update_block_height` metadata.",
+            "Fetch the indexed NFT contract IDs associated with an account. This v0 route does not include block-height metadata.",
             &["non-fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -180,7 +180,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}",
             "lookup_by_public_key_v1",
             "Lookup full-access accounts by public key",
-            "Returns account IDs currently associated with the supplied full-access public key. This v1 route currently uses the same `{ public_key, account_ids }` response shape as the v0 route.",
+            "Use the v1 endpoint for the newer namespace. It currently returns the same response shape as the v0 route.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -201,7 +201,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/public_key/{public_key}/all",
             "lookup_by_public_key_all_v1",
             "Lookup all indexed accounts by public key",
-            "Returns account IDs currently associated with the supplied public key, including limited-access keys when they are present in the FastNEAR index. This v1 route currently uses the same `{ public_key, account_ids }` response shape as the v0 route.",
+            "Fetch every indexed account tied to a public key. This v1 route currently uses the same response shape as the v0 route.",
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
@@ -222,7 +222,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/account/{account_id}/staking",
             "account_staking_v1",
             "Lookup indexed staking pools for an account",
-            "Returns staking pool rows for the requested account. `last_update_block_height` is nullable when FastNEAR has not recorded a recent indexed update for that pool relationship.",
+            "Retrieve staking pool rows for an account, including block-height metadata for each pool relationship.",
             &["staking"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -248,7 +248,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/account/{account_id}/ft",
             "account_ft_v1",
             "Lookup indexed fungible token rows for an account",
-            "Returns fungible token rows for the requested account. Balances and `last_update_block_height` remain nullable when the index has not recorded them yet.",
+            "Fetch the v1 indexed fungible token balance rows for one account.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -275,7 +275,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/account/{account_id}/nft",
             "account_nft_v1",
             "Lookup indexed NFT contract rows for an account",
-            "Returns NFT contract rows for the requested account. `last_update_block_height` is nullable when FastNEAR has not recorded a recent indexed update for that contract relationship.",
+            "Fetch NFT contract rows for an account, including block-height metadata for each contract.",
             &["non-fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "account_id",
@@ -301,7 +301,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/ft/{token_id}/top",
             "ft_top_v1",
             "Lookup top indexed holders for a fungible token",
-            "Returns the top indexed accounts by balance for the requested fungible token.",
+            "Use this endpoint to inspect the indexed top holders for a fungible token contract.",
             &["fungible-tokens"],
             with_api_key(vec![path_parameter(
                 "token_id",
@@ -327,7 +327,7 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             "/v1/account/{account_id}/full",
             "account_full_v1",
             "Lookup full indexed account information",
-            "Returns staking, fungible token, NFT, and account-state information for the requested account. `state` remains nullable when the account state has not been recorded.",
+            "Fetch the combined indexed account view, including staking pools, FT balances, NFTs, and account state.",
             &["accounts"],
             with_api_key(vec![path_parameter(
                 "account_id",

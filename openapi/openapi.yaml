@@ -242,7 +242,7 @@ openapi: 3.0.3
 paths:
   /health:
     get:
-      description: Returns `ok` when the service is healthy. When FastNEAR is degraded, the same `status` field carries a diagnostic string instead.
+      description: Use this lightweight probe to confirm the FastNear API is healthy.
       operationId: get_health
       parameters:
       - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
@@ -273,7 +273,7 @@ paths:
       x-fastnear-title: FastNEAR API - Health
   /status:
     get:
-      description: Returns the latest indexed sync heights, the indexed block timestamp, the measured sync latency, and the deployed FastNEAR API version.
+      description: Check the current indexed block height, latency, and deployed service version.
       operationId: get_status
       parameters:
       - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
@@ -308,7 +308,7 @@ paths:
       x-fastnear-title: FastNEAR API - Status
   /v0/account/{account_id}/ft:
     get:
-      description: Returns only fungible token contract account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include balances or block-height metadata.
+      description: Retrieve the indexed fungible token contract IDs for an account. This v0 route does not return balances.
       operationId: account_ft_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -355,7 +355,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account FT
   /v0/account/{account_id}/nft:
     get:
-      description: Returns only NFT contract account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include `last_update_block_height` metadata.
+      description: Fetch the indexed NFT contract IDs associated with an account. This v0 route does not include block-height metadata.
       operationId: account_nft_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -401,7 +401,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account NFT
   /v0/account/{account_id}/staking:
     get:
-      description: Returns staking pool account IDs that FastNEAR has indexed for the requested account. Unlike the v1 route, this response does not include `last_update_block_height` metadata.
+      description: Fetch the staking pool account IDs FastNear has indexed for one account. This v0 route returns pool IDs only, without block-height metadata.
       operationId: account_staking_v0
       parameters:
       - description: NEAR account ID to inspect.
@@ -447,7 +447,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Account Staking
   /v0/public_key/{public_key}:
     get:
-      description: Returns account IDs currently associated with the provided full-access public key. The response includes account IDs only.
+      description: Fetch the indexed account IDs associated with a full-access public key.
       operationId: lookup_by_public_key_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -493,7 +493,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Public Key Lookup
   /v0/public_key/{public_key}/all:
     get:
-      description: Returns account IDs currently associated with the supplied public key, including limited-access keys when they are present in the FastNEAR index.
+      description: Use this variant when one public key may control multiple accounts and you want the full set.
       operationId: lookup_by_public_key_all_v0
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -539,7 +539,7 @@ paths:
       x-fastnear-title: FastNEAR API - V0 Public Key Lookup (All)
   /v1/account/{account_id}/ft:
     get:
-      description: Returns fungible token rows for the requested account. Balances and `last_update_block_height` remain nullable when the index has not recorded them yet.
+      description: Fetch the v1 indexed fungible token balance rows for one account.
       operationId: account_ft_v1
       parameters:
       - description: NEAR account ID to inspect.
@@ -587,7 +587,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Account FT
   /v1/account/{account_id}/full:
     get:
-      description: Returns staking, fungible token, NFT, and account-state information for the requested account. `state` remains nullable when the account state has not been recorded.
+      description: Fetch the combined indexed account view, including staking pools, FT balances, NFTs, and account state.
       operationId: account_full_v1
       parameters:
       - description: NEAR account ID to inspect.
@@ -638,7 +638,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Account Full
   /v1/account/{account_id}/nft:
     get:
-      description: Returns NFT contract rows for the requested account. `last_update_block_height` is nullable when FastNEAR has not recorded a recent indexed update for that contract relationship.
+      description: Fetch NFT contract rows for an account, including block-height metadata for each contract.
       operationId: account_nft_v1
       parameters:
       - description: NEAR account ID to inspect.
@@ -685,7 +685,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Account NFT
   /v1/account/{account_id}/staking:
     get:
-      description: Returns staking pool rows for the requested account. `last_update_block_height` is nullable when FastNEAR has not recorded a recent indexed update for that pool relationship.
+      description: Retrieve staking pool rows for an account, including block-height metadata for each pool relationship.
       operationId: account_staking_v1
       parameters:
       - description: NEAR account ID to inspect.
@@ -732,7 +732,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Account Staking
   /v1/ft/{token_id}/top:
     get:
-      description: Returns the top indexed accounts by balance for the requested fungible token.
+      description: Use this endpoint to inspect the indexed top holders for a fungible token contract.
       operationId: ft_top_v1
       parameters:
       - description: Fungible token contract account ID.
@@ -779,7 +779,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 FT Top Holders
   /v1/public_key/{public_key}:
     get:
-      description: Returns account IDs currently associated with the supplied full-access public key. This v1 route currently uses the same `{ public_key, account_ids }` response shape as the v0 route.
+      description: Use the v1 endpoint for the newer namespace. It currently returns the same response shape as the v0 route.
       operationId: lookup_by_public_key_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
@@ -825,7 +825,7 @@ paths:
       x-fastnear-title: FastNEAR API - V1 Public Key Lookup
   /v1/public_key/{public_key}/all:
     get:
-      description: Returns account IDs currently associated with the supplied public key, including limited-access keys when they are present in the FastNEAR index. This v1 route currently uses the same `{ public_key, account_ids }` response shape as the v0 route.
+      description: Fetch every indexed account tied to a public key. This v1 route currently uses the same response shape as the v0 route.
       operationId: lookup_by_public_key_all_v1
       parameters:
       - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.

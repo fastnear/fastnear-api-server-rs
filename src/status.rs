@@ -1,10 +1,12 @@
 use actix_web::{get, web, Responder};
 
-use crate::api::{HealthError, ServiceError};
+use crate::api::HealthError;
 use crate::types::{HealthResponse, StatusResponse};
-use crate::{database, AppState, Config};
+use crate::*;
 
-async fn internal_status(app_state: &web::Data<AppState>) -> Result<StatusResponse, ServiceError> {
+async fn internal_status(
+    app_state: &web::Data<AppState>,
+) -> Result<StatusResponse, api::ServiceError> {
     let mut connection = app_state
         .redis_client
         .get_multiplexed_async_connection()
@@ -15,20 +17,20 @@ async fn internal_status(app_state: &web::Data<AppState>) -> Result<StatusRespon
     let latest_balance_block =
         database::query_get(&mut connection, "meta:latest_balance_block").await?;
 
-    let sync_latency_sec = latest_block_time.as_ref().map(|timestamp| {
-        let timestamp_nanos = timestamp.parse::<u128>().unwrap_or(0);
+    let sync_latency_sec = latest_block_time.as_ref().map(|t| {
+        let t_nano = t.parse::<u128>().unwrap_or(0);
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default();
-        now.as_nanos().saturating_sub(timestamp_nanos) as f64 / 1e9
+        now.as_nanos().saturating_sub(t_nano) as f64 / 1e9
     });
 
     Ok(StatusResponse {
         version: env!("CARGO_PKG_VERSION").to_string(),
-        sync_block_height: latest_sync_block.and_then(|value| value.parse::<u64>().ok()),
+        sync_block_height: latest_sync_block.map(|s| s.parse::<u64>().unwrap_or(0)),
         sync_latency_sec,
         sync_block_timestamp_nanosec: latest_block_time,
-        sync_balance_block_height: latest_balance_block.and_then(|value| value.parse::<u64>().ok()),
+        sync_balance_block_height: latest_balance_block.map(|s| s.parse::<u64>().unwrap_or(0)),
     })
 }
 
@@ -42,7 +44,6 @@ fn is_healthy(status_response: &StatusResponse, config: &Config) -> Result<(), H
             max_latency: config.max_healthy_latency_sec,
         });
     }
-
     let latest_sync_block = status_response
         .sync_block_height
         .ok_or(HealthError::MissingSyncBlockHeight)?;
@@ -56,23 +57,22 @@ fn is_healthy(status_response: &StatusResponse, config: &Config) -> Result<(), H
             max_sync_difference: config.max_healthy_sync_block_diff,
         });
     }
-
     Ok(())
 }
 
 #[get("/status")]
-pub async fn status(app_state: web::Data<AppState>) -> Result<impl Responder, ServiceError> {
-    internal_status(&app_state).await.map(web::Json)
+pub async fn status(
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, crate::api::ServiceError> {
+    internal_status(&app_state).await.map(|res| web::Json(res))
 }
 
 #[get("/health")]
-pub async fn health(app_state: web::Data<AppState>) -> Result<impl Responder, ServiceError> {
-    let status_response = internal_status(&app_state).await?;
-    let response = HealthResponse {
-        status: is_healthy(&status_response, &app_state.config)
+pub async fn health(app_state: web::Data<AppState>) -> Result<impl Responder, api::ServiceError> {
+    let res = internal_status(&app_state).await?;
+    Ok(web::Json(HealthResponse {
+        status: is_healthy(&res, &app_state.config)
             .map(|_| "ok".to_string())
-            .unwrap_or_else(|error| format!("{:?}", error)),
-    };
-
-    Ok(web::Json(response))
+            .unwrap_or_else(|e| format!("{:?}", e)),
+    }))
 }

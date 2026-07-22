@@ -1,15 +1,19 @@
-use crate::*;
-use actix_web::ResponseError;
-use near_account_id::AccountId;
-use near_crypto::PublicKey;
-use serde_json::json;
 use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 
-const TARGET_API: &str = "api";
+use actix_web::{get, web, HttpRequest, HttpResponse, Responder, ResponseError};
+use near_account_id::AccountId;
+use near_crypto::PublicKey;
 
-pub type BlockHeight = u64;
+use crate::types::{
+    parse_account_state, AccountBalanceRow, AccountFullResponse, ExpFtWithBalancesResponse, NftRow,
+    PoolRow, PublicKeyLookupResponse, TokenAccountsResponse, TokenRow, V0ContractsResponse,
+    V0StakingResponse, V1FtResponse, V1NftResponse, V1StakingResponse,
+};
+use crate::{database, rpc, AppState};
+
+const TARGET_API: &str = "api";
 
 #[derive(Debug)]
 pub enum ServiceError {
@@ -102,14 +106,13 @@ pub mod v0 {
 
         let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
-        Ok(web::Json(json!({
-            "public_key": public_key,
-            "account_ids": account_ids.into_iter().filter_map(|(k, v)| if v == "f" {
-                Some(k)
-            } else {
-                None
-            }).collect::<Vec<_>>(),
-        })))
+        Ok(web::Json(PublicKeyLookupResponse {
+            public_key,
+            account_ids: account_ids
+                .into_iter()
+                .filter_map(|(k, v)| if v == "f" { Some(k) } else { None })
+                .collect(),
+        }))
     }
 
     #[get("/public_key/{public_key}/all")]
@@ -131,10 +134,10 @@ pub mod v0 {
 
         let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
-        Ok(web::Json(json!({
-            "public_key": public_key,
-            "account_ids": account_ids.into_iter().map(|(k, _v)| k).collect::<Vec<_>>(),
-        })))
+        Ok(web::Json(PublicKeyLookupResponse {
+            public_key,
+            account_ids: account_ids.into_iter().map(|(k, _v)| k).collect(),
+        }))
     }
 
     #[get("/account/{account_id}/staking")]
@@ -156,10 +159,10 @@ pub mod v0 {
         let query_result =
             database::query_with_prefix(&mut connection, "st", &account_id.to_string()).await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "pools": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
-        })))
+        Ok(web::Json(V0StakingResponse {
+            account_id: account_id.to_string(),
+            pools: query_result.into_iter().map(|(k, _v)| k).collect(),
+        }))
     }
 
     #[get("/account/{account_id}/ft")]
@@ -181,10 +184,10 @@ pub mod v0 {
         let query_result =
             database::query_with_prefix(&mut connection, "ft", &account_id.to_string()).await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "contract_ids": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
-        })))
+        Ok(web::Json(V0ContractsResponse {
+            account_id: account_id.to_string(),
+            contract_ids: query_result.into_iter().map(|(k, _v)| k).collect(),
+        }))
     }
 
     #[get("/account/{account_id}/nft")]
@@ -206,10 +209,10 @@ pub mod v0 {
         let query_result =
             database::query_with_prefix(&mut connection, "nf", &account_id.to_string()).await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "contract_ids": query_result.into_iter().map(|(k, _v)| k).collect::<Vec<String>>(),
-        })))
+        Ok(web::Json(V0ContractsResponse {
+            account_id: account_id.to_string(),
+            contract_ids: query_result.into_iter().map(|(k, _v)| k).collect(),
+        }))
     }
 }
 
@@ -240,10 +243,10 @@ pub mod exp {
         let token_balances: HashMap<String, Option<String>> =
             rpc::get_ft_balances(&account_id, &token_ids).await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "tokens": token_balances,
-        })))
+        Ok(web::Json(ExpFtWithBalancesResponse {
+            account_id,
+            tokens: token_balances,
+        }))
     }
 
     #[get("/ft/{token_id}/all")]
@@ -267,13 +270,16 @@ pub mod exp {
         let tokens_with_balances =
             database::query_with_prefix(&mut connection, "b", &token_id).await?;
 
-        Ok(web::Json(json!({
-            "token_id": token_id,
-            "accounts": tokens_with_balances.into_iter().map(|(account_id, balance)| json!({
-                "account_id": account_id,
-                "balance": balance,
-            })).collect::<Vec<_>>()
-        })))
+        Ok(web::Json(TokenAccountsResponse {
+            token_id,
+            accounts: tokens_with_balances
+                .into_iter()
+                .map(|(account_id, balance)| AccountBalanceRow {
+                    account_id,
+                    balance: Some(balance),
+                })
+                .collect(),
+        }))
     }
 }
 
@@ -300,13 +306,16 @@ pub mod v1 {
             database::query_with_prefix_parse(&mut connection, "st", &account_id.to_string())
                 .await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "pools": query_result.into_iter().map(|(pool_id, last_update_block_height)| json!({
-                "pool_id": pool_id,
-                "last_update_block_height": last_update_block_height,
-            })).collect::<Vec<_>>()
-        })))
+        Ok(web::Json(V1StakingResponse {
+            account_id: account_id.to_string(),
+            pools: query_result
+                .into_iter()
+                .map(|(pool_id, last_update_block_height)| PoolRow {
+                    pool_id,
+                    last_update_block_height,
+                })
+                .collect(),
+        }))
     }
 
     #[get("/account/{account_id}/ft")]
@@ -339,14 +348,20 @@ pub mod v1 {
         )
         .await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "tokens": query_result.into_iter().zip(balances.into_iter()).map(|((contract_id, last_update_block_height), balance)| json!({
-                "contract_id": contract_id,
-                "last_update_block_height": last_update_block_height,
-                "balance": balance,
-            })).collect::<Vec<_>>()
-        })))
+        Ok(web::Json(V1FtResponse {
+            account_id,
+            tokens: query_result
+                .into_iter()
+                .zip(balances.into_iter())
+                .map(
+                    |((contract_id, last_update_block_height), balance)| TokenRow {
+                        contract_id,
+                        last_update_block_height,
+                        balance,
+                    },
+                )
+                .collect(),
+        }))
     }
 
     #[get("/account/{account_id}/nft")]
@@ -369,13 +384,16 @@ pub mod v1 {
             database::query_with_prefix_parse(&mut connection, "nf", &account_id.to_string())
                 .await?;
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "tokens": query_result.into_iter().map(|(contract_id, last_update_block_height)| json!({
-                "contract_id": contract_id,
-                "last_update_block_height": last_update_block_height,
-            })).collect::<Vec<_>>()
-        })))
+        Ok(web::Json(V1NftResponse {
+            account_id: account_id.to_string(),
+            tokens: query_result
+                .into_iter()
+                .map(|(contract_id, last_update_block_height)| NftRow {
+                    contract_id,
+                    last_update_block_height,
+                })
+                .collect(),
+        }))
     }
 
     #[get("/ft/{token_id}/top")]
@@ -429,13 +447,16 @@ pub mod v1 {
                 ))
         });
 
-        Ok(web::Json(json!({
-            "token_id": token_id,
-            "accounts": top_holders.iter().map(|(account_id, balance)| json!({
-                "account_id": account_id,
-                "balance": balance,
-            })).collect::<Vec<_>>()
-        })))
+        Ok(web::Json(TokenAccountsResponse {
+            token_id,
+            accounts: top_holders
+                .into_iter()
+                .map(|(account_id, balance)| AccountBalanceRow {
+                    account_id,
+                    balance,
+                })
+                .collect(),
+        }))
     }
 
     #[get("/account/{account_id}/full")]
@@ -462,11 +483,9 @@ pub mod v1 {
 
         let pools = query_result
             .into_iter()
-            .map(|(pool_id, last_update_block_height)| {
-                json!({
-                    "pool_id": pool_id,
-                    "last_update_block_height": last_update_block_height,
-                })
+            .map(|(pool_id, last_update_block_height)| PoolRow {
+                pool_id,
+                last_update_block_height,
             })
             .collect::<Vec<_>>();
 
@@ -484,13 +503,13 @@ pub mod v1 {
         let tokens = query_result
             .into_iter()
             .zip(balances.into_iter())
-            .map(|((contract_id, last_update_block_height), balance)| {
-                json!({
-                    "contract_id": contract_id,
-                    "last_update_block_height": last_update_block_height,
-                    "balance": balance,
-                })
-            })
+            .map(
+                |((contract_id, last_update_block_height), balance)| TokenRow {
+                    contract_id,
+                    last_update_block_height,
+                    balance,
+                },
+            )
             .collect::<Vec<_>>();
 
         let query_result =
@@ -499,34 +518,22 @@ pub mod v1 {
 
         let nfts = query_result
             .into_iter()
-            .map(|(contract_id, last_update_block_height)| {
-                json!({
-                    "contract_id": contract_id,
-                    "last_update_block_height": last_update_block_height,
-                })
+            .map(|(contract_id, last_update_block_height)| NftRow {
+                contract_id,
+                last_update_block_height,
             })
             .collect::<Vec<_>>();
 
-        let state = database::query_hget(&mut connection, "accounts", &account_id)
-            .await?
-            .and_then(|state| {
-                if state.is_empty() {
-                    None
-                } else {
-                    serde_json::from_str::<serde_json::Value>(&state).ok()
-                }
-            });
+        let state = parse_account_state(
+            database::query_hget(&mut connection, "accounts", &account_id).await?,
+        );
 
-        Ok(web::Json(json!({
-            "account_id": account_id,
-            "pools": pools,
-            "tokens": tokens,
-            "nfts": nfts,
-            "state": state.map(|state| json!({
-                "balance": state["b"],
-                "locked": state["l"],
-                "storage_bytes": state["s"],
-            })),
-        })))
+        Ok(web::Json(AccountFullResponse {
+            account_id,
+            pools,
+            tokens,
+            nfts,
+            state,
+        }))
     }
 }

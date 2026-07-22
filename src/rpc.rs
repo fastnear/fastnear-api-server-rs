@@ -1,4 +1,4 @@
-use crate::api::BlockHeight;
+use crate::types::BlockHeight;
 use base64::prelude::*;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};

@@ -1,44 +1,11 @@
-mod api;
-mod database;
-mod redis_db;
-mod rpc;
-mod status;
-
-use dotenv::dotenv;
 use std::env;
 
 use actix_cors::Cors;
 use actix_web::http::header;
-use actix_web::{get, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{middleware, web, App, HttpServer};
+use dotenv::dotenv;
+use fastnear_api_server_rs::{api, index_html, skill_md, status, AppState, Config};
 use tracing_subscriber::EnvFilter;
-
-#[derive(Clone)]
-pub struct Config {
-    pub max_healthy_latency_sec: f64,
-    pub max_healthy_sync_block_diff: u64,
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    pub redis_client: redis::Client,
-    pub config: Config,
-}
-
-const INDEX_HTML: &str = include_str!("../index.html");
-
-async fn index_html() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(INDEX_HTML)
-}
-
-const SKILL_MD: &str = include_str!("../skill.md");
-
-async fn skill_md() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("text/markdown; charset=utf-8")
-        .body(SKILL_MD)
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

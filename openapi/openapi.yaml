@@ -1,0 +1,876 @@
+components:
+  schemas:
+    AccountBalanceRow:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        balance:
+          nullable: true
+          type: string
+      required:
+      - account_id
+      - balance
+      type: object
+    AccountFullResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        nfts:
+          items:
+            $ref: '#/components/schemas/NftRow'
+          type: array
+        pools:
+          items:
+            $ref: '#/components/schemas/PoolRow'
+          type: array
+        state:
+          allOf:
+          - $ref: '#/components/schemas/AccountStateResponse'
+          nullable: true
+          type: object
+        tokens:
+          items:
+            $ref: '#/components/schemas/TokenRow'
+          type: array
+      required:
+      - account_id
+      - pools
+      - tokens
+      - nfts
+      - state
+      type: object
+    AccountStateResponse:
+      additionalProperties: false
+      properties:
+        balance:
+          nullable: true
+          type: string
+        locked:
+          nullable: true
+          type: string
+        storage_bytes:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+      required:
+      - balance
+      - locked
+      - storage_bytes
+      type: object
+    HealthResponse:
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+      required:
+      - status
+      type: object
+    NftRow:
+      additionalProperties: false
+      properties:
+        contract_id:
+          type: string
+        last_update_block_height:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+      required:
+      - contract_id
+      - last_update_block_height
+      type: object
+    PoolRow:
+      additionalProperties: false
+      properties:
+        last_update_block_height:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+        pool_id:
+          type: string
+      required:
+      - pool_id
+      - last_update_block_height
+      type: object
+    PublicKeyLookupResponse:
+      additionalProperties: false
+      properties:
+        account_ids:
+          items:
+            type: string
+          type: array
+        public_key:
+          type: string
+      required:
+      - public_key
+      - account_ids
+      type: object
+    StatusResponse:
+      additionalProperties: false
+      properties:
+        sync_balance_block_height:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+        sync_block_height:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+        sync_block_timestamp_nanosec:
+          nullable: true
+          type: string
+        sync_latency_sec:
+          format: double
+          nullable: true
+          type: number
+        version:
+          type: string
+      required:
+      - version
+      - sync_block_height
+      - sync_latency_sec
+      - sync_block_timestamp_nanosec
+      - sync_balance_block_height
+      type: object
+    TokenAccountsResponse:
+      additionalProperties: false
+      properties:
+        accounts:
+          items:
+            $ref: '#/components/schemas/AccountBalanceRow'
+          type: array
+        token_id:
+          type: string
+      required:
+      - token_id
+      - accounts
+      type: object
+    TokenRow:
+      additionalProperties: false
+      properties:
+        balance:
+          nullable: true
+          type: string
+        contract_id:
+          type: string
+        last_update_block_height:
+          format: uint64
+          minimum: 0
+          nullable: true
+          type: integer
+      required:
+      - contract_id
+      - last_update_block_height
+      - balance
+      type: object
+    V0ContractsResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        contract_ids:
+          items:
+            type: string
+          type: array
+      required:
+      - account_id
+      - contract_ids
+      type: object
+    V0StakingResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        pools:
+          items:
+            type: string
+          type: array
+      required:
+      - account_id
+      - pools
+      type: object
+    V1FtResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        tokens:
+          items:
+            $ref: '#/components/schemas/TokenRow'
+          type: array
+      required:
+      - account_id
+      - tokens
+      type: object
+    V1NftResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        tokens:
+          items:
+            $ref: '#/components/schemas/NftRow'
+          type: array
+      required:
+      - account_id
+      - tokens
+      type: object
+    V1StakingResponse:
+      additionalProperties: false
+      properties:
+        account_id:
+          type: string
+        pools:
+          items:
+            $ref: '#/components/schemas/PoolRow'
+          type: array
+      required:
+      - account_id
+      - pools
+      type: object
+info:
+  description: Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. Embedded portal clients may forward an optional `apiKey` query parameter, but the public FastNEAR API does not require it.
+  title: FastNEAR API
+  version: 3.0.3
+openapi: 3.0.3
+paths:
+  /health:
+    get:
+      description: 'Ping the FastNEAR API for liveness — returns `{status: ok}` when healthy.'
+      operationId: get_health
+      parameters:
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                status: ok
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: Health status string
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Get service health
+      tags:
+      - system
+      x-fastnear-slug: health
+      x-fastnear-title: FastNEAR API - Health
+  /status:
+    get:
+      description: Check the current indexed block height, latency, and deployed service version.
+      operationId: get_status
+      parameters:
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                sync_balance_block_height: 129734103
+                sync_block_height: 129734103
+                sync_block_timestamp_nanosec: '1728256282197171397'
+                sync_latency_sec: 4.671730603
+                version: 0.10.0
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+          description: Current FastNEAR API sync status
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Get service sync status
+      tags:
+      - system
+      x-fastnear-slug: status
+      x-fastnear-title: FastNEAR API - Status
+  /v0/account/{account_id}/ft:
+    get:
+      description: Fetch the fungible token contract IDs an account has held — contract IDs only, no balances.
+      operationId: account_ft_v0
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: here.tg
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: here.tg
+                contract_ids:
+                - wrap.near
+                - usdt.tether-token.near
+              schema:
+                $ref: '#/components/schemas/V0ContractsResponse'
+          description: Fungible token contract IDs for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup fungible token contract IDs for an account
+      tags:
+      - fungible-tokens
+      x-fastnear-slug: account_ft
+      x-fastnear-title: FastNEAR API - V0 Account FT
+  /v0/account/{account_id}/nft:
+    get:
+      description: Fetch the NFT contract IDs an account has held — contract IDs only, no block-height metadata.
+      operationId: account_nft_v0
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: sharddog.near
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: sharddog.near
+                contract_ids:
+                - nft.example.near
+              schema:
+                $ref: '#/components/schemas/V0ContractsResponse'
+          description: NFT contract IDs for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup NFT contract IDs for an account
+      tags:
+      - non-fungible-tokens
+      x-fastnear-slug: account_nft
+      x-fastnear-title: FastNEAR API - V0 Account NFT
+  /v0/account/{account_id}/staking:
+    get:
+      description: Fetch staking pool account IDs for one account — pool IDs only, no block-height metadata.
+      operationId: account_staking_v0
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: mob.near
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: mob.near
+                pools:
+                - zavodil.poolv1.near
+              schema:
+                $ref: '#/components/schemas/V0StakingResponse'
+          description: Staking pool account IDs for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup staking pool account IDs for an account
+      tags:
+      - staking
+      x-fastnear-slug: account_staking
+      x-fastnear-title: FastNEAR API - V0 Account Staking
+  /v0/public_key/{public_key}:
+    get:
+      description: Fetch the account IDs that have registered a full-access public key, via the legacy V0 lookup path.
+      operationId: lookup_by_public_key_v0
+      parameters:
+      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+        in: path
+        name: public_key
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_ids:
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+              schema:
+                $ref: '#/components/schemas/PublicKeyLookupResponse'
+          description: Matching account IDs for the supplied full-access public key
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup full-access accounts by public key
+      tags:
+      - public-key
+      x-fastnear-slug: public_key_lookup
+      x-fastnear-title: FastNEAR API - V0 Public Key Lookup
+  /v0/public_key/{public_key}/all:
+    get:
+      description: List every account tied to a public key — full-access and limited-access keys together — via the legacy V0 lookup-all path.
+      operationId: lookup_by_public_key_all_v0
+      parameters:
+      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+        in: path
+        name: public_key
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_ids:
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+              schema:
+                $ref: '#/components/schemas/PublicKeyLookupResponse'
+          description: Matching account IDs for the supplied public key, including limited-access keys
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup all indexed accounts by public key
+      tags:
+      - public-key
+      x-fastnear-slug: public_key_lookup_all
+      x-fastnear-title: FastNEAR API - V0 Public Key Lookup (All)
+  /v1/account/{account_id}/ft:
+    get:
+      description: Fetch an account's fungible token balance rows, each with contract ID, balance, and last-update block height.
+      operationId: account_ft_v1
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: here.tg
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: here.tg
+                tokens:
+                - balance: '1000000000000000000000000'
+                  contract_id: wrap.near
+                  last_update_block_height: null
+              schema:
+                $ref: '#/components/schemas/V1FtResponse'
+          description: Indexed fungible token rows for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup indexed fungible token rows for an account
+      tags:
+      - fungible-tokens
+      x-fastnear-slug: account_ft
+      x-fastnear-title: FastNEAR API - V1 Account FT
+  /v1/account/{account_id}/full:
+    get:
+      description: Fetch the combined indexed account view, including staking pools, FT balances, NFTs, and account state.
+      operationId: account_full_v1
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: here.tg
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: here.tg
+                nfts: []
+                pools: []
+                state:
+                  balance: '1000000000000000000000000'
+                  locked: '0'
+                  storage_bytes: 512
+                tokens: []
+              schema:
+                $ref: '#/components/schemas/AccountFullResponse'
+          description: Full indexed account information for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup full indexed account information
+      tags:
+      - accounts
+      x-fastnear-slug: account_full
+      x-fastnear-title: FastNEAR API - V1 Account Full
+  /v1/account/{account_id}/nft:
+    get:
+      description: Fetch NFT contract rows for an account, including block-height metadata for each contract.
+      operationId: account_nft_v1
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: sharddog.near
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: sharddog.near
+                tokens:
+                - contract_id: nft.example.near
+                  last_update_block_height: null
+              schema:
+                $ref: '#/components/schemas/V1NftResponse'
+          description: Indexed NFT contract rows for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup indexed NFT contract rows for an account
+      tags:
+      - non-fungible-tokens
+      x-fastnear-slug: account_nft
+      x-fastnear-title: FastNEAR API - V1 Account NFT
+  /v1/account/{account_id}/staking:
+    get:
+      description: Retrieve staking pool rows for an account, including block-height metadata for each pool relationship.
+      operationId: account_staking_v1
+      parameters:
+      - description: NEAR account ID to inspect.
+        example: mob.near
+        in: path
+        name: account_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_id: mob.near
+                pools:
+                - last_update_block_height: null
+                  pool_id: zavodil.poolv1.near
+              schema:
+                $ref: '#/components/schemas/V1StakingResponse'
+          description: Indexed staking pool rows for the requested account
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup indexed staking pools for an account
+      tags:
+      - staking
+      x-fastnear-slug: account_staking
+      x-fastnear-title: FastNEAR API - V1 Account Staking
+  /v1/ft/{token_id}/top:
+    get:
+      description: Fetch the top-balance holder list for a fungible token contract, ranked highest balance first.
+      operationId: ft_top_v1
+      parameters:
+      - description: Fungible token contract account ID.
+        example: wrap.near
+        in: path
+        name: token_id
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                accounts:
+                - account_id: mob.near
+                  balance: '979894691374420631019486155'
+                token_id: wrap.near
+              schema:
+                $ref: '#/components/schemas/TokenAccountsResponse'
+          description: Indexed top holders for the requested fungible token
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup top indexed holders for a fungible token
+      tags:
+      - fungible-tokens
+      x-fastnear-slug: ft_top
+      x-fastnear-title: FastNEAR API - V1 FT Top Holders
+  /v1/public_key/{public_key}:
+    get:
+      description: Resolve a full-access public key to the indexed NEAR accounts that have registered it — V1 canonical lookup path.
+      operationId: lookup_by_public_key_v1
+      parameters:
+      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+        in: path
+        name: public_key
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_ids:
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+              schema:
+                $ref: '#/components/schemas/PublicKeyLookupResponse'
+          description: Matching account IDs for the supplied full-access public key
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup full-access accounts by public key
+      tags:
+      - public-key
+      x-fastnear-slug: public_key_lookup
+      x-fastnear-title: FastNEAR API - V1 Public Key Lookup
+  /v1/public_key/{public_key}/all:
+    get:
+      description: Resolve a public key to every account that holds it — full-access and limited-access keys alike — via the V1 lookup-all path.
+      operationId: lookup_by_public_key_all_v1
+      parameters:
+      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+        example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+        in: path
+        name: public_key
+        required: true
+        schema:
+          type: string
+      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
+        in: query
+        name: apiKey
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                account_ids:
+                - root.near
+                public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
+              schema:
+                $ref: '#/components/schemas/PublicKeyLookupResponse'
+          description: Matching account IDs for the supplied public key, including limited-access keys
+        '400':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Bad Request
+        '500':
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Internal Server Error
+      summary: Lookup all indexed accounts by public key
+      tags:
+      - public-key
+      x-fastnear-slug: public_key_lookup_all
+      x-fastnear-title: FastNEAR API - V1 Public Key Lookup (All)
+servers:
+- description: Mainnet
+  url: https://api.fastnear.com
+- description: Testnet
+  url: https://test.api.fastnear.com

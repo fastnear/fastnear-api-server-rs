@@ -1,4 +1,4 @@
-use crate::api::BlockHeight;
+use crate::types::BlockHeight;
 
 const TARGET_DB: &str = "database";
 

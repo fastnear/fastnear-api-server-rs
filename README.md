@@ -8,8 +8,8 @@ APIs:
 
 1. Public Key to Account ID(s) mapping.
 
-- Full Access Public Key to Account ID(s) mapping.
-- Any Public Key to Account ID(s) mapping.
+- Full Access Public Key or access-key handle to Account ID(s) mapping.
+- Any Public Key or access-key handle to Account ID(s) mapping.
 
 2. Account ID to delegated staking pools (validators).
 3. Account ID to fungible tokens (FT contracts).
@@ -21,6 +21,8 @@ Endpoints:
 
 - Mainnet: https://api.fastnear.com
 - Testnet: https://test.api.fastnear.com
+
+Public key lookup endpoints accept `ed25519:...`, `secp256k1:...`, full `ml-dsa-65:...` public keys, and `ml-dsa-65-hash:...` access-key handles returned by access-key-list RPC. Full ML-DSA-65 keys are normalized to the hash handle used for lookup and in the response.
 
 ## OpenAPI Generation
 

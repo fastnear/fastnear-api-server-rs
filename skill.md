@@ -15,8 +15,8 @@ Base URLs:
 
 ### API V1 (recommended)
 
-- `GET /v1/public_key/{public_key}` — Full-access public key to account ID(s).
-- `GET /v1/public_key/{public_key}/all` — Any public key (including limited access) to account ID(s).
+- `GET /v1/public_key/{public_key}` — Full-access public key or access-key handle to account ID(s).
+- `GET /v1/public_key/{public_key}/all` — Any public key or access-key handle (including limited access) to account ID(s).
 - `GET /v1/account/{account_id}/staking` — Delegated staking pools with `last_update_block_height`.
 - `GET /v1/account/{account_id}/ft` — Fungible tokens with `last_update_block_height` and `balance`.
 - `GET /v1/account/{account_id}/nft` — Non-fungible tokens with `last_update_block_height`.
@@ -25,8 +25,8 @@ Base URLs:
 
 ### API V0 (deprecated, use V1)
 
-- `GET /v0/public_key/{public_key}` — Full-access public key to account ID(s).
-- `GET /v0/public_key/{public_key}/all` — Any public key to account ID(s).
+- `GET /v0/public_key/{public_key}` — Full-access public key or access-key handle to account ID(s).
+- `GET /v0/public_key/{public_key}/all` — Any public key or access-key handle to account ID(s).
 - `GET /v0/account/{account_id}/staking` — Delegated staking pools (no block height).
 - `GET /v0/account/{account_id}/ft` — Fungible token contract IDs (no balances).
 - `GET /v0/account/{account_id}/nft` — NFT contract IDs (no block height).
@@ -37,3 +37,4 @@ Base URLs:
 - `balance: null` means balance is not yet available; `balance: ""` means the FT contract may be broken.
 - `last_update_block_height: null` means no recent updates were recorded (tracking started around block 115000000).
 - `v1/public_key/*` currently uses the same `{ public_key, account_ids }` response shape as `v0/public_key/*`.
+- Public key lookup endpoints accept `ed25519:...`, `secp256k1:...`, full `ml-dsa-65:...` public keys, and `ml-dsa-65-hash:...` access-key handles. Full ML-DSA-65 keys are normalized to `ml-dsa-65-hash:...` for lookup and response output.

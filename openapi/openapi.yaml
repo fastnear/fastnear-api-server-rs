@@ -450,7 +450,7 @@ paths:
       description: Fetch the account IDs that have registered a full-access public key, via the legacy V0 lookup path.
       operationId: lookup_by_public_key_v0
       parameters:
-      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+      - description: NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.
         example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
@@ -473,7 +473,7 @@ paths:
                 public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
-          description: Matching account IDs for the supplied full-access public key
+          description: Matching account IDs for the supplied full-access public key or access-key handle
         '400':
           content:
             application/json:
@@ -496,7 +496,7 @@ paths:
       description: List every account tied to a public key — full-access and limited-access keys together — via the legacy V0 lookup-all path.
       operationId: lookup_by_public_key_all_v0
       parameters:
-      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+      - description: NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.
         example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
@@ -519,7 +519,7 @@ paths:
                 public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
-          description: Matching account IDs for the supplied public key, including limited-access keys
+          description: Matching account IDs for the supplied public key or access-key handle, including limited-access keys
         '400':
           content:
             application/json:
@@ -782,7 +782,7 @@ paths:
       description: Resolve a full-access public key to the indexed NEAR accounts that have registered it — V1 canonical lookup path.
       operationId: lookup_by_public_key_v1
       parameters:
-      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+      - description: NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.
         example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
@@ -805,7 +805,7 @@ paths:
                 public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
-          description: Matching account IDs for the supplied full-access public key
+          description: Matching account IDs for the supplied full-access public key or access-key handle
         '400':
           content:
             application/json:
@@ -828,7 +828,7 @@ paths:
       description: Resolve a public key to every account that holds it — full-access and limited-access keys alike — via the V1 lookup-all path.
       operationId: lookup_by_public_key_all_v1
       parameters:
-      - description: NEAR public key in `ed25519:...` or `secp256k1:...` form.
+      - description: NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.
         example: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
         in: path
         name: public_key
@@ -851,7 +851,7 @@ paths:
                 public_key: ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT
               schema:
                 $ref: '#/components/schemas/PublicKeyLookupResponse'
-          description: Matching account IDs for the supplied public key, including limited-access keys
+          description: Matching account IDs for the supplied public key or access-key handle, including limited-access keys
         '400':
           content:
             application/json:

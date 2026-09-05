@@ -106,8 +106,8 @@
       <li>
         Public Key to Account ID(s) mapping.
         <ul>
-          <li>Full Access Public Key to Account ID(s) mapping.</li>
-          <li>Any Public Key to Account ID(s) mapping.</li>
+          <li>Full Access Public Key or access-key handle to Account ID(s) mapping.</li>
+          <li>Any Public Key or access-key handle to Account ID(s) mapping.</li>
         </ul>
       </li>
       <li>Account ID to delegated staking pools (validators).</li>
@@ -123,6 +123,8 @@
       <li>Mainnet: <a href="https://api.fastnear.com">https://api.fastnear.com</a></li>
       <li>Testnet: <a href="https://test.api.fastnear.com">https://test.api.fastnear.com</a></li>
     </ul>
+
+    <p>Public key lookup endpoints accept <code>ed25519:...</code>, <code>secp256k1:...</code>, full <code>ml-dsa-65:...</code> public keys, and <code>ml-dsa-65-hash:...</code> access-key handles returned by access-key-list RPC. Full ML-DSA-65 keys are normalized to the hash handle used for lookup and in the response.</p>
 
     <h2>Status</h2>
 

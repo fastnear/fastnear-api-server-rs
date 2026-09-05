@@ -5,6 +5,7 @@ use std::str::FromStr;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder, ResponseError};
 use near_account_id::AccountId;
 use near_crypto::PublicKey;
+use sha3::{Digest, Sha3_256};
 
 use crate::types::{
     parse_account_state, AccountBalanceRow, AccountFullResponse, ExpFtWithBalancesResponse, NftRow,
@@ -14,6 +15,51 @@ use crate::types::{
 use crate::{database, rpc, AppState};
 
 const TARGET_API: &str = "api";
+const ML_DSA_65_PUBLIC_KEY_PREFIX: &str = "ml-dsa-65:";
+const ML_DSA_65_HASH_PREFIX: &str = "ml-dsa-65-hash:";
+const ML_DSA_65_PUBLIC_KEY_LENGTH: usize = 1952;
+const ML_DSA_65_HASH_LENGTH: usize = 32;
+const ML_DSA_65_HASH_DOMAIN_TAG: &[u8] = b"near:ml-dsa-65-pubkey-hash:v1";
+
+fn normalize_public_key_lookup_key(value: &str) -> Result<String, ServiceError> {
+    if let Some(hash) = value.strip_prefix(ML_DSA_65_HASH_PREFIX) {
+        let hash = decode_base58_exact(hash, ML_DSA_65_HASH_LENGTH)?;
+        return Ok(format!(
+            "{}{}",
+            ML_DSA_65_HASH_PREFIX,
+            bs58::encode(hash).into_string()
+        ));
+    }
+
+    if let Some(public_key) = value.strip_prefix(ML_DSA_65_PUBLIC_KEY_PREFIX) {
+        let public_key = decode_base58_exact(public_key, ML_DSA_65_PUBLIC_KEY_LENGTH)?;
+        let mut hasher = Sha3_256::new();
+        hasher.update(ML_DSA_65_HASH_DOMAIN_TAG);
+        hasher.update(public_key);
+        let hash = hasher.finalize();
+
+        return Ok(format!(
+            "{}{}",
+            ML_DSA_65_HASH_PREFIX,
+            bs58::encode(&hash[..]).into_string()
+        ));
+    }
+
+    let public_key = PublicKey::from_str(value).map_err(|_| ServiceError::ArgumentError)?;
+    Ok(public_key.to_string())
+}
+
+fn decode_base58_exact(value: &str, expected_len: usize) -> Result<Vec<u8>, ServiceError> {
+    let bytes = bs58::decode(value)
+        .into_vec()
+        .map_err(|_| ServiceError::ArgumentError)?;
+
+    if bytes.len() != expected_len {
+        return Err(ServiceError::ArgumentError);
+    }
+
+    Ok(bytes)
+}
 
 #[derive(Debug)]
 pub enum ServiceError {
@@ -92,8 +138,8 @@ pub mod v0 {
         request: HttpRequest,
         app_state: web::Data<AppState>,
     ) -> Result<impl Responder, ServiceError> {
-        let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
-            .map_err(|_| ServiceError::ArgumentError)?;
+        let public_key =
+            normalize_public_key_lookup_key(request.match_info().get("public_key").unwrap())?;
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
@@ -101,8 +147,6 @@ pub mod v0 {
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
-
-        let public_key = public_key.to_string();
 
         let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
@@ -120,8 +164,8 @@ pub mod v0 {
         request: HttpRequest,
         app_state: web::Data<AppState>,
     ) -> Result<impl Responder, ServiceError> {
-        let public_key = PublicKey::from_str(request.match_info().get("public_key").unwrap())
-            .map_err(|_| ServiceError::ArgumentError)?;
+        let public_key =
+            normalize_public_key_lookup_key(request.match_info().get("public_key").unwrap())?;
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
@@ -129,8 +173,6 @@ pub mod v0 {
             .redis_client
             .get_multiplexed_async_connection()
             .await?;
-
-        let public_key = public_key.to_string();
 
         let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
 
@@ -213,6 +255,73 @@ pub mod v0 {
             account_id: account_id.to_string(),
             contract_ids: query_result.into_iter().map(|(k, _v)| k).collect(),
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use near_crypto::{KeyType, SecretKey};
+    use sha3::{Digest, Sha3_256};
+
+    use super::{
+        normalize_public_key_lookup_key, ServiceError, ML_DSA_65_HASH_DOMAIN_TAG,
+        ML_DSA_65_HASH_PREFIX, ML_DSA_65_PUBLIC_KEY_LENGTH, ML_DSA_65_PUBLIC_KEY_PREFIX,
+    };
+
+    #[test]
+    fn public_key_lookup_key_accepts_classical_public_keys() {
+        for key_type in [KeyType::ED25519, KeyType::SECP256K1] {
+            let public_key = SecretKey::from_seed(key_type, "lookup-test")
+                .public_key()
+                .to_string();
+
+            assert_eq!(
+                normalize_public_key_lookup_key(&public_key).unwrap(),
+                public_key
+            );
+        }
+    }
+
+    #[test]
+    fn public_key_lookup_key_accepts_ml_dsa_public_key_or_hash_handle() {
+        let public_key = vec![7; ML_DSA_65_PUBLIC_KEY_LENGTH];
+        let full_public_key = format!(
+            "{}{}",
+            ML_DSA_65_PUBLIC_KEY_PREFIX,
+            bs58::encode(&public_key).into_string()
+        );
+        let mut hasher = Sha3_256::new();
+        hasher.update(ML_DSA_65_HASH_DOMAIN_TAG);
+        hasher.update(&public_key);
+        let hash = hasher.finalize();
+        let public_key_handle = format!(
+            "{}{}",
+            ML_DSA_65_HASH_PREFIX,
+            bs58::encode(&hash[..]).into_string()
+        );
+
+        assert!(full_public_key.starts_with("ml-dsa-65:"));
+        assert!(public_key_handle.starts_with("ml-dsa-65-hash:"));
+        assert_eq!(
+            normalize_public_key_lookup_key(&full_public_key).unwrap(),
+            public_key_handle
+        );
+        assert_eq!(
+            normalize_public_key_lookup_key(&public_key_handle).unwrap(),
+            public_key_handle
+        );
+    }
+
+    #[test]
+    fn public_key_lookup_key_rejects_invalid_values() {
+        assert!(matches!(
+            normalize_public_key_lookup_key("ml-dsa-65-hash:short"),
+            Err(ServiceError::ArgumentError)
+        ));
+        assert!(matches!(
+            normalize_public_key_lookup_key("ml-dsa-65:short"),
+            Err(ServiceError::ArgumentError)
+        ));
     }
 }
 

@@ -79,10 +79,10 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
-                "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
+                "NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.",
                 json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
-            "Matching account IDs for the supplied full-access public key",
+            "Matching account IDs for the supplied full-access public key or access-key handle",
             Some(json!({
                 "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
                 "account_ids": ["root.near"]
@@ -100,10 +100,10 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
-                "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
+                "NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.",
                 json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
-            "Matching account IDs for the supplied public key, including limited-access keys",
+            "Matching account IDs for the supplied public key or access-key handle, including limited-access keys",
             Some(json!({
                 "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
                 "account_ids": ["root.near"]
@@ -184,10 +184,10 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
-                "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
+                "NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.",
                 json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
-            "Matching account IDs for the supplied full-access public key",
+            "Matching account IDs for the supplied full-access public key or access-key handle",
             Some(json!({
                 "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
                 "account_ids": ["root.near"]
@@ -205,10 +205,10 @@ pub fn generate(check: bool, include_exp: bool) -> Result<()> {
             &["public-key"],
             with_api_key(vec![path_parameter(
                 "public_key",
-                "NEAR public key in `ed25519:...` or `secp256k1:...` form.",
+                "NEAR public key or access-key handle in `ed25519:...`, `secp256k1:...`, `ml-dsa-65:...`, or `ml-dsa-65-hash:...` form.",
                 json!("ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT"),
             )]),
-            "Matching account IDs for the supplied public key, including limited-access keys",
+            "Matching account IDs for the supplied public key or access-key handle, including limited-access keys",
             Some(json!({
                 "public_key": "ed25519:CCaThr3uokqnUs6Z5vVnaDcJdrfuTpYJHJWcAGubDjT",
                 "account_ids": ["root.near"]

@@ -154,7 +154,9 @@ pub mod v0 {
             public_key,
             account_ids: account_ids
                 .into_iter()
-                .filter_map(|(k, v)| if v == "f" { Some(k) } else { None })
+                // "f" is a full-access key and "gf" a gas key with full access; both control
+                // the account. Limited keys ("l", "gl") only appear under /all.
+                .filter_map(|(k, v)| if v == "f" || v == "gf" { Some(k) } else { None })
                 .collect(),
         }))
     }

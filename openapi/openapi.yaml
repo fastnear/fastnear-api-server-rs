@@ -245,7 +245,7 @@ components:
       scheme: bearer
       type: http
 info:
-  description: 'Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. No API key is required. A FastNEAR API key raises rate limits; send it as an `Authorization: Bearer` header (preferred) or an `apiKey` query parameter. An unrecognized key is rejected with 403 rather than falling back to public access.'
+  description: 'Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. Send your FastNEAR API key as an `Authorization: Bearer` header (preferred) or an `apiKey` query parameter. An unrecognized key is rejected with 403.'
   title: FastNEAR API
   version: 3.0.3
 openapi: 3.0.3
@@ -269,7 +269,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -304,7 +304,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -352,7 +352,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -399,7 +399,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -446,7 +446,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -493,7 +493,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -540,7 +540,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -589,7 +589,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -641,7 +641,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -689,7 +689,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -737,7 +737,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -785,7 +785,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -832,7 +832,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:
@@ -879,7 +879,7 @@ paths:
               example: Invalid API key
               schema:
                 type: string
-          description: The supplied API key was not recognized. Omit the key to use public access.
+          description: The supplied API key was not recognized.
         '500':
           content:
             application/json:

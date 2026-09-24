@@ -16,7 +16,7 @@ const API_VERSION: &str = "3.0.3";
 const SERVICE_INFO: ApiInfo<'static> = ApiInfo {
     title: "FastNEAR API",
     version: API_VERSION,
-    description: "Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. No API key is required. A FastNEAR API key raises rate limits; send it as an `Authorization: Bearer` header (preferred) or an `apiKey` query parameter. An unrecognized key is rejected with 403 rather than falling back to public access.",
+    description: "Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. Send your FastNEAR API key as an `Authorization: Bearer` header (preferred) or an `apiKey` query parameter. An unrecognized key is rejected with 403.",
     servers: &[
         ApiServer {
             url: "https://api.fastnear.com",
@@ -454,7 +454,7 @@ where
 
     responses.push(ResponseSpec {
         status: "403",
-        description: "The supplied API key was not recognized. Omit the key to use public access.",
+        description: "The supplied API key was not recognized.",
         content: Some(ResponseContent::Text {
             schema: json!({ "type": "string" }),
             example: Some("Invalid API key"),
@@ -501,10 +501,11 @@ fn path_parameter(
     }
 }
 
-// A key is optional everywhere (it raises limits, it doesn't grant access), so
-// the empty requirement leads the list. Bearer precedes apiKey to mark the
-// header as the preferred form; the YAML writer sorts the scheme map, so this
-// array is the only place that order survives.
+// The empty requirement leads the list so the contract matches gateway
+// behaviour as it stands; the docs deliberately never describe keyless access
+// in prose or response text. Bearer precedes apiKey to mark the header as the
+// preferred form; the YAML writer sorts the scheme map, so this array is the
+// only place that order survives.
 fn set_security(doc: &mut Value) {
     doc["components"]["securitySchemes"] = json!({
         "BearerAuth": {
@@ -683,7 +684,7 @@ mod tests {
     }
 
     #[test]
-    fn security_is_optional_and_prefers_bearer() {
+    fn security_lists_empty_requirement_first_and_prefers_bearer() {
         let mut doc = json!({ "components": { "schemas": {} } });
         set_security(&mut doc);
 

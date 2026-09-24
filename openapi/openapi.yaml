@@ -234,8 +234,18 @@ components:
       - account_id
       - pools
       type: object
+  securitySchemes:
+    ApiKeyAuth:
+      description: FastNEAR API key as the `apiKey` query parameter. Handy for curl or clients that cannot set headers, but the key can end up in URLs, logs, and shell history.
+      in: query
+      name: apiKey
+      type: apiKey
+    BearerAuth:
+      description: 'FastNEAR API key as an `Authorization: Bearer` header. Preferred for backends, workers, and proxies because it keeps the key out of URLs and logs.'
+      scheme: bearer
+      type: http
 info:
-  description: Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. Embedded portal clients may forward an optional `apiKey` query parameter, but the public FastNEAR API does not require it.
+  description: 'Low-latency indexed account, token, and public-key lookup APIs for wallets and explorers. No API key is required. A FastNEAR API key raises rate limits; send it as an `Authorization: Bearer` header (preferred) or an `apiKey` query parameter. An unrecognized key is rejected with 403 rather than falling back to public access.'
   title: FastNEAR API
   version: 3.0.3
 openapi: 3.0.3
@@ -244,13 +254,6 @@ paths:
     get:
       description: 'Ping the FastNEAR API for liveness — returns `{status: ok}` when healthy.'
       operationId: get_health
-      parameters:
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -260,6 +263,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
           description: Health status string
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -275,13 +285,6 @@ paths:
     get:
       description: Check the current indexed block height, latency, and deployed service version.
       operationId: get_status
-      parameters:
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -295,6 +298,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/StatusResponse'
           description: Current FastNEAR API sync status
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -318,12 +328,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -342,6 +346,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -365,12 +376,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -388,6 +393,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -411,12 +423,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -434,6 +440,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -457,12 +470,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -480,6 +487,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -503,12 +517,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -526,6 +534,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -549,12 +564,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -574,6 +583,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -595,12 +611,6 @@ paths:
         in: path
         name: account_id
         required: true
-        schema:
-          type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
         schema:
           type: string
       responses:
@@ -625,6 +635,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -648,12 +665,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -672,6 +683,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -695,12 +713,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -719,6 +731,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -742,12 +761,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -766,6 +779,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -789,12 +809,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -812,6 +826,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -835,12 +856,6 @@ paths:
         required: true
         schema:
           type: string
-      - description: Optional API key forwarded by embedded portal clients. The public FastNEAR API does not require it.
-        in: query
-        name: apiKey
-        required: false
-        schema:
-          type: string
       responses:
         '200':
           content:
@@ -858,6 +873,13 @@ paths:
               schema:
                 type: string
           description: Bad Request
+        '403':
+          content:
+            text/plain:
+              example: Invalid API key
+              schema:
+                type: string
+          description: The supplied API key was not recognized. Omit the key to use public access.
         '500':
           content:
             application/json:
@@ -869,6 +891,10 @@ paths:
       - public-key
       x-fastnear-slug: public_key_lookup_all
       x-fastnear-title: FastNEAR API - V1 Public Key Lookup (All)
+security:
+- {}
+- BearerAuth: []
+- ApiKeyAuth: []
 servers:
 - description: Mainnet
   url: https://api.fastnear.com

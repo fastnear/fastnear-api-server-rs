@@ -61,6 +61,45 @@ fn decode_base58_exact(value: &str, expected_len: usize) -> Result<Vec<u8>, Serv
     Ok(bytes)
 }
 
+/// Before compact-indexer#9, ft-red keyed ML-DSA-65 entries by the full public key instead of
+/// the on-chain handle, and an index that has not been migrated with `ml-dsa-backfill` still
+/// holds entries written that way. A lookup by full key reads that entry too. A handle cannot
+/// be mapped back to its full key, so handle lookups only see handle entries.
+fn legacy_ml_dsa_65_lookup_key(value: &str) -> Option<String> {
+    let public_key = value.strip_prefix(ML_DSA_65_PUBLIC_KEY_PREFIX)?;
+    let public_key = decode_base58_exact(public_key, ML_DSA_65_PUBLIC_KEY_LENGTH).ok()?;
+    Some(format!(
+        "{}{}",
+        ML_DSA_65_PUBLIC_KEY_PREFIX,
+        bs58::encode(public_key).into_string()
+    ))
+}
+
+/// Adds legacy-entry accounts that the current entry does not already list. Where both list
+/// an account, the current entry's flag stands.
+fn merge_legacy_entries(entries: &mut Vec<(String, String)>, legacy: Vec<(String, String)>) {
+    for (account_id, flag) in legacy {
+        if !entries.iter().any(|(existing, _)| existing == &account_id) {
+            entries.push((account_id, flag));
+        }
+    }
+}
+
+/// The `pk:` entries for a lookup: the normalized key's entry, plus the legacy full-key entry
+/// when the request named a full ML-DSA-65 key.
+async fn query_public_key_entries(
+    connection: &mut redis::aio::MultiplexedConnection,
+    public_key: &str,
+    value: &str,
+) -> Result<Vec<(String, String)>, ServiceError> {
+    let mut entries = database::query_with_prefix(connection, "pk", public_key).await?;
+    if let Some(legacy_key) = legacy_ml_dsa_65_lookup_key(value) {
+        let legacy = database::query_with_prefix(connection, "pk", &legacy_key).await?;
+        merge_legacy_entries(&mut entries, legacy);
+    }
+    Ok(entries)
+}
+
 #[derive(Debug)]
 pub enum ServiceError {
     DatabaseError(database::DatabaseError),
@@ -138,8 +177,8 @@ pub mod v0 {
         request: HttpRequest,
         app_state: web::Data<AppState>,
     ) -> Result<impl Responder, ServiceError> {
-        let public_key =
-            normalize_public_key_lookup_key(request.match_info().get("public_key").unwrap())?;
+        let value = request.match_info().get("public_key").unwrap();
+        let public_key = normalize_public_key_lookup_key(value)?;
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for public_key: {}", public_key);
 
@@ -148,7 +187,7 @@ pub mod v0 {
             .get_multiplexed_async_connection()
             .await?;
 
-        let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
+        let account_ids = query_public_key_entries(&mut connection, &public_key, value).await?;
 
         Ok(web::Json(PublicKeyLookupResponse {
             public_key,
@@ -166,8 +205,8 @@ pub mod v0 {
         request: HttpRequest,
         app_state: web::Data<AppState>,
     ) -> Result<impl Responder, ServiceError> {
-        let public_key =
-            normalize_public_key_lookup_key(request.match_info().get("public_key").unwrap())?;
+        let value = request.match_info().get("public_key").unwrap();
+        let public_key = normalize_public_key_lookup_key(value)?;
 
         tracing::debug!(target: TARGET_API, "Looking up account_ids for all public_key: {}", public_key);
 
@@ -176,7 +215,7 @@ pub mod v0 {
             .get_multiplexed_async_connection()
             .await?;
 
-        let account_ids = database::query_with_prefix(&mut connection, "pk", &public_key).await?;
+        let account_ids = query_public_key_entries(&mut connection, &public_key, value).await?;
 
         Ok(web::Json(PublicKeyLookupResponse {
             public_key,
@@ -266,8 +305,9 @@ mod tests {
     use sha3::{Digest, Sha3_256};
 
     use super::{
-        normalize_public_key_lookup_key, ServiceError, ML_DSA_65_HASH_DOMAIN_TAG,
-        ML_DSA_65_HASH_PREFIX, ML_DSA_65_PUBLIC_KEY_LENGTH, ML_DSA_65_PUBLIC_KEY_PREFIX,
+        legacy_ml_dsa_65_lookup_key, merge_legacy_entries, normalize_public_key_lookup_key,
+        ServiceError, ML_DSA_65_HASH_DOMAIN_TAG, ML_DSA_65_HASH_PREFIX,
+        ML_DSA_65_PUBLIC_KEY_LENGTH, ML_DSA_65_PUBLIC_KEY_PREFIX,
     };
 
     #[test]
@@ -324,6 +364,46 @@ mod tests {
             normalize_public_key_lookup_key("ml-dsa-65:short"),
             Err(ServiceError::ArgumentError)
         ));
+    }
+
+    #[test]
+    fn legacy_lookup_key_is_the_full_ml_dsa_key_only() {
+        let full_public_key = format!(
+            "{}{}",
+            ML_DSA_65_PUBLIC_KEY_PREFIX,
+            bs58::encode(vec![7; ML_DSA_65_PUBLIC_KEY_LENGTH]).into_string()
+        );
+        let public_key_handle = normalize_public_key_lookup_key(&full_public_key).unwrap();
+        let ed25519 = SecretKey::from_seed(KeyType::ED25519, "lookup-test")
+            .public_key()
+            .to_string();
+
+        assert_eq!(
+            legacy_ml_dsa_65_lookup_key(&full_public_key),
+            Some(full_public_key.clone())
+        );
+        assert_eq!(legacy_ml_dsa_65_lookup_key(&public_key_handle), None);
+        assert_eq!(legacy_ml_dsa_65_lookup_key(&ed25519), None);
+        assert_eq!(legacy_ml_dsa_65_lookup_key("ml-dsa-65:short"), None);
+    }
+
+    #[test]
+    fn merge_keeps_current_flags_and_adds_legacy_only_accounts() {
+        let entry = |a: &str, f: &str| (a.to_string(), f.to_string());
+        let mut entries = vec![entry("both.near", "gf"), entry("new.near", "l")];
+        merge_legacy_entries(
+            &mut entries,
+            vec![entry("both.near", "f"), entry("old.near", "f")],
+        );
+
+        assert_eq!(
+            entries,
+            vec![
+                entry("both.near", "gf"),
+                entry("new.near", "l"),
+                entry("old.near", "f")
+            ]
+        );
     }
 }
 
